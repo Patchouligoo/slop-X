@@ -1,4 +1,4 @@
-# reslop
+# SLOP-X BASED ON SLOPSPECv1
 
 LLM-driven HEP analysis framework. An orchestrator agent delegates work to
 subagents through five sequential phases, producing a publication-quality
