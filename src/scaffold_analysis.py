@@ -47,7 +47,7 @@ PHASES = [
     "phase5_documentation",
 ]
 
-PHASE_SUBDIRS = ["exec", "scripts", "figures", "review"]
+PHASE_SUBDIRS = ["exec", "scripts", "figures", "review", "review/plot-validation"]
 
 PHASE_TEMPLATE_MAP = {
     "phase1_strategy": "phase1_claude.md",
@@ -105,7 +105,10 @@ def scaffold(analysis_dir: Path, analysis_type: str):
             claude_path.write_text(_substitute(template, variables))
             print(f"  wrote {claude_path}")
 
-    # Symlink conventions/ and methodology/ into the analysis directory
+    # Symlink conventions/, methodology/, and .claude/ into the analysis directory
+    # Each analysis gets its own git repo, so Claude Code won't walk up to
+    # the parent slopspec/.claude/. Symlinking ensures agents, skills, hooks,
+    # and settings are available inside each analysis directory.
     conventions_link = analysis_dir / "conventions"
     conventions_src = HERE / "conventions"
     if not conventions_link.exists() and conventions_src.exists():
@@ -117,6 +120,12 @@ def scaffold(analysis_dir: Path, analysis_type: str):
     if not methodology_link.exists() and methodology_src.exists():
         methodology_link.symlink_to(methodology_src.resolve())
         print(f"  linked {methodology_link} -> {methodology_src}")
+
+    claude_link = analysis_dir / ".claude"
+    claude_src = HERE.parent / ".claude"
+    if not claude_link.exists() and claude_src.exists():
+        claude_link.symlink_to(claude_src.resolve())
+        print(f"  linked {claude_link} -> {claude_src}")
 
     # .analysis_config (for isolation hook — set data_dir before running)
     config_path = analysis_dir / ".analysis_config"
@@ -137,6 +146,48 @@ def scaffold(analysis_dir: Path, analysis_type: str):
         template = _read_template("pixi.toml")
         pixi_path.write_text(template.replace("{name}", variables["name"]))
         print(f"  wrote {pixi_path}")
+
+    # STATE.md for pipeline state tracking and resumption
+    state_path = analysis_dir / "STATE.md"
+    if not state_path.exists():
+        state_path.write_text(
+            "# Analysis State\n\n"
+            f"- **Analysis**: {variables['name']}\n"
+            "- **Current phase**: 1\n"
+            "- **Status**: initialized\n"
+            "- **Last updated**: (not started)\n\n"
+            "## Phase History\n\n"
+            "| Phase | Status | Artifact | Review | Iterations | Notes |\n"
+            "|-------|--------|----------|--------|------------|-------|\n\n"
+            "## Blockers\n- (none)\n\n"
+            "## Regression Log\n- (none)\n"
+        )
+        print(f"  wrote {state_path}")
+
+    # analysis_config.yaml for orchestration config
+    yaml_config_path = analysis_dir / "analysis_config.yaml"
+    if not yaml_config_path.exists():
+        yaml_config_path.write_text(
+            f"analysis_name: {variables['name']}\n"
+            f"analysis_type: {analysis_type}\n"
+            "physics_prompt_path: prompt.md\n"
+            "model_tier: auto\n"
+            "channels: []  # populated during Phase 1\n"
+            "calibrations: []  # populated during Phase 1\n"
+            "cost_controls:\n"
+            "  max_review_iterations: 10\n"
+            "  review_warn_threshold: 3\n"
+            "blinding:\n"
+            "  active: true\n"
+            "  approved_for_unblinding: false\n"
+        )
+        print(f"  wrote {yaml_config_path}")
+
+    # regression_log.md
+    regression_path = analysis_dir / "regression_log.md"
+    if not regression_path.exists():
+        regression_path.write_text("# Regression Log\n")
+        print(f"  wrote {regression_path}")
 
     # Experiment log and retrieval log
     for log_name in ["experiment_log.md", "retrieval_log.md"]:

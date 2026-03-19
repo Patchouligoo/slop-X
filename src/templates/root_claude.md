@@ -72,6 +72,15 @@ separate subagent invocations: one for statistical analysis, another for AN
 writing/rendering. The AN-writing subagent reads the inference artifact from
 disk.
 
+**Agent profiles:** Detailed role definitions with domain knowledge, mandatory
+checklists, and output formats live in `.claude/agents/*.md`. When spawning an
+executor or reviewer, instruct it to read its agent profile first. The profile
+contains the deep domain expertise (5-step selection philosophy, 8 mandatory
+fit diagnostics, closure test criteria, etc.) that makes the agent effective.
+The agent roster and phase-to-agent mapping is in
+`methodology/orchestration/agents.md` (or `src/orchestration/agents.md` from
+the spec root).
+
 **Anti-patterns:**
 - Running straight from Phase 1 to Phase 5 with no intermediate artifacts
 - The orchestrator writing analysis scripts itself
@@ -80,6 +89,8 @@ disk.
 - Accepting reviewer PASS too easily — the arbiter should ITERATE liberally
 - Spawning subagents without `model: "opus"` — this silently degrades quality
 - Subagents reading files with `cat | sed | head` instead of the Read tool
+- Skipping plot-validator in review cycles — it catches errors LLMs miss
+- Spawning an executor without pointing it to its `.claude/agents/` profile
 
 **What the orchestrator does NOT do:**
 - Read full scripts or data files (subagents do this)
@@ -207,13 +218,19 @@ The arbiter must not PASS with unresolved A or B items.
 
 | Phase | Review type |
 |-------|-------------|
-| 1: Strategy | 4-bot (physics + critical + constructive + arbiter) |
+| 1: Strategy | 4-bot + plot-validator (physics + critical + constructive + arbiter) |
 | 2: Exploration | Self-review |
-| 3: Processing | 1-bot (single critical reviewer) |
-| 4a: Expected | 4-bot |
-| 4b: 10% validation | 4-bot → human gate |
-| 4c: Full data | 1-bot |
-| 5: Documentation | 5-bot (4-bot + rendering reviewer) |
+| 3: Processing | 1-bot + plot-validator (critical + plot-validator) |
+| 4a: Expected | 4-bot + plot-validator |
+| 4b: 10% validation | 4-bot + plot-validator → human gate |
+| 4c: Full data | 1-bot + plot-validator |
+| 5: Documentation | 5-bot + plot-validator (4-bot + rendering + plot-validator) |
+
+**Plot-validator** runs alongside all other reviewers in parallel. It performs
+programmatic (not visual) checks on plotting code and output data. Red flags
+from the plot-validator are automatic Category A — the arbiter must not
+downgrade them. See `.claude/agents/plot-validator.md` and
+`methodology/06-review.md` §6.4.3 for the complete protocol.
 
 **Iteration limits:** 4/5-bot: warn at 3, strong warn at 5, hard cap at 10. 1-bot: warn at 2, escalate after 3. All subagents use `model: "opus"`.
 

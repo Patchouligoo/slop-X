@@ -25,13 +25,21 @@ All reviews — regardless of intensity — use the same classification:
 
 | Phase | Review type | Rationale |
 |-------|------------|-----------|
-| Phase 1: Strategy | **4-bot** (physics + critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
+| Phase 1: Strategy | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
 | Phase 2: Exploration | **Self-review** | Mostly mechanical (sample inventory, distributions). High execution iteration as the agent discovers data formats. Errors caught downstream in Phase 3. |
-| Phase 3: Processing | **1-bot** (single critical reviewer) | Physics mistakes become quantitative here. One external eye on closure tests and background/correction modeling. High execution iteration — don't bottleneck it. |
-| Phase 4a: Expected results | **4-bot** | Gates the 10% validation. The fit model, systematics, and expected results must be bulletproof. Full tribunal. |
-| Phase 4b: 10% validation | **4-bot** | The draft analysis note and 10% results must be polished before presenting to a human. The human should see a professional product, not a rough draft. |
-| Phase 4c: Full data | **1-bot** | Sanity check on post-fit diagnostics. Methodology already human-approved. |
-| Phase 5: Documentation | **5-bot** (physics + critical + constructive + rendering + arbiter) | The final product submitted for collaboration review. Worth the full treatment. |
+| Phase 3: Processing | **1-bot + plot-validator** (single critical reviewer) | Physics mistakes become quantitative here. One external eye on closure tests and background/correction modeling. High execution iteration — don't bottleneck it. |
+| Phase 4a: Expected results | **4-bot + plot-validator** | Gates the 10% validation. The fit model, systematics, and expected results must be bulletproof. Full tribunal. |
+| Phase 4b: 10% validation | **4-bot + plot-validator** | The draft analysis note and 10% results must be polished before presenting to a human. The human should see a professional product, not a rough draft. |
+| Phase 4c: Full data | **1-bot + plot-validator** | Sanity check on post-fit diagnostics. Methodology already human-approved. |
+| Phase 5: Documentation | **5-bot + plot-validator** (physics + critical + constructive + rendering + arbiter) | The final product submitted for collaboration review. Worth the full treatment. |
+
+**Plot-validator** is spawned alongside all other reviewers (in parallel) for
+every phase that produces figures (all phases except Phase 1 strategy-only).
+The plot-validator runs programmatic checks (not visual inspection) on all
+plotting code and output data. Its findings are passed to the arbiter as
+additional review input. Plot-validator red flags are automatic Category A —
+the arbiter must not downgrade them. See `.claude/agents/plot-validator.md`
+for the complete validation protocol.
 
 **4-bot review** = physics reviewer + critical reviewer ("bad cop") +
 constructive reviewer ("good cop") + arbiter. The **physics reviewer**
@@ -42,15 +50,16 @@ The critical reviewer's goal is to find flaws — both in what is present
 and in what is absent. The constructive reviewer's goal is to strengthen
 the analysis — clarity, additional validation, improved presentation.
 Reviewers run in parallel (they cannot see each other's work); the arbiter
-reads all reviews and the original artifact, adjudicates disagreements, and
-issues PASS / ITERATE / ESCALATE.
+reads all reviews (including the plot-validator report) and the original
+artifact, adjudicates disagreements, and issues PASS / ITERATE / ESCALATE.
 
 **5-bot review** (Phase 5 only) = physics + critical + constructive +
-rendering + arbiter. The rendering reviewer runs `pixi run build-pdf` and
-inspects the compiled PDF for figure rendering, math compilation, layout,
-and cross-references.
+rendering + plot-validator + arbiter. The rendering reviewer runs
+`pixi run build-pdf` and inspects the compiled PDF for figure rendering,
+math compilation, layout, and cross-references.
 
-**1-bot review** = single critical reviewer. Issues classified A/B/C.
+**1-bot review** = single critical reviewer + plot-validator. Issues
+classified A/B/C. Plot-validator red flags are automatic Category A.
 Executor addresses Category A items and re-submits. No arbiter needed.
 
 **Self-review** = the executing agent explicitly reviews its own work before
@@ -240,7 +249,75 @@ figure sizing problems. To mitigate this:
   LLM visual inspection. The human gate at Phase 4b is a natural checkpoint
   for this.
 
-#### 6.4.3 Documentation Review (Phase 5)
+#### 6.4.3 Plot Validation Protocol (all figure-producing phases)
+
+The plot-validator agent runs alongside all other reviewers in every review
+cycle that evaluates phases producing figures. Unlike human or LLM visual
+inspection (which is unreliable for catching errors), the plot-validator
+operates **programmatically** — examining plotting code, running the scripts,
+and checking the output data against physics expectations.
+
+**Why this exists.** The most common failure mode in LLM-driven HEP analysis
+is producing plots that look syntactically correct but are physically
+ridiculous — data/MC ratios of 10x, flat pT distributions, negative yields,
+systematically shifted distributions. LLM reviewers reliably miss these
+because they share training biases: they can parse a plot's structure but
+cannot reliably judge whether the physics content makes sense. The
+plot-validator compensates by applying quantitative, programmatic checks
+that do not require visual judgment.
+
+**Validation categories:**
+
+**A. Code compliance** (from plotting scripts):
+- mplhep style applied
+- Figure size matches template (10×10 or multiples)
+- No `ax.set_title()` calls
+- No numeric `fontsize=` arguments
+- Axis labels set with units
+- `bbox_inches="tight"` at save time
+- Both PDF and PNG saved
+- `plt.close(fig)` after saving
+
+**B. Physics sanity** (from output data/histograms):
+- All yields non-negative
+- Efficiencies between 0 and 1
+- Data/MC ratios in CRs between 0.5 and 2.0
+- Uncertainties proportional to √N for Poisson-dominated bins
+- pT/mass distributions fall off at high values (not flat or rising)
+- Cutflow yields monotonically non-increasing
+- Background fractions sum to ~100%
+- Chi²/ndf for data/MC < 3.0 in control regions
+- Total predicted yield within 2× of back-of-envelope (σ × L × ε)
+
+**C. Consistency** (across plots and tables):
+- Same process has consistent yield across different plots
+- Pre-fit/post-fit yields consistent with fit result
+- NP pulls mostly within ±2σ
+- Impact rankings consistent with uncertainty breakdown
+
+**D. Red flags** (automatic Category A):
+- Any negative event yield
+- Any efficiency > 1 or < 0
+- Any data/MC ratio > 5.0 or < 0.2 in a control region
+- Total uncertainty = 0 in any bin with non-zero content
+- Chi²/ndf > 5.0 for any data/MC comparison
+- Systematic variation > 100% in any bin
+- Cutflow yield that increases at any step
+- NP pull > 3σ for any parameter
+- Fit non-convergence
+
+Red flag findings from the plot-validator are passed directly to the arbiter
+(in 4/5-bot reviews) or treated as Category A (in 1-bot reviews). The
+arbiter must not downgrade red flags without explicit justification in the
+ARBITER report.
+
+**Integration with review cycle:** The plot-validator runs in parallel with
+other reviewers. Its report (`PLOT_VALIDATION.md`) is read by the arbiter
+alongside the physics, critical, and constructive reviews. In 1-bot reviews,
+the critical reviewer reads the plot-validation report and incorporates its
+findings.
+
+#### 6.4.4 Documentation Review (Phase 5)
 
 The Phase 5 review is the last line of defense. It operates on the analysis
 note as a **standalone document** — the reviewer should evaluate it as a
@@ -278,7 +355,7 @@ The cost of this review is additional iteration loops if it finds gaps that
 should have been caught earlier. That cost is acceptable — it is better to
 iterate at Phase 5 than to publish an incomplete result.
 
-### 6.4.4 Single-Session Review via Subagents
+### 6.4.5 Single-Session Review via Subagents
 
 When the analysis runs in a single session, reviews are implemented by
 spawning dedicated reviewer subagents (see §3a (`03a-orchestration.md`) for the full
