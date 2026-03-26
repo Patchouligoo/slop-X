@@ -21,7 +21,7 @@ You must maintain strict independence from the primary analysis code:
 - Do NOT import or call functions from the primary analysis modules.
 - Do NOT use the primary analysis configuration files directly (read them only to understand what should be reproduced).
 - Write your own independent scripts for each cross-check.
-- Use `pixi run` to execute scripts in an independent environment where available.
+- Use `python3` to execute scripts using the active conda environment.
 - If your cross-check gives different results from the primary analysis, investigate the discrepancy. The cross-check may be wrong, but the primary analysis may also be wrong.
 
 ## 8 Cross-Check Programs

@@ -111,7 +111,7 @@ These checks automatically produce Category A findings:
 
 2. **Run programmatic checks (Category A)**: Grep through all plotting scripts for the patterns listed above. This does not require running the scripts.
 
-3. **Run plotting scripts**: Execute the plotting scripts using `Bash` (via `pixi run` where applicable) to produce the output figures and data.
+3. **Run plotting scripts**: Execute the plotting scripts using `Bash` (via `python3` in the active conda environment) to produce the output figures and data.
 
 4. **Extract histogram data**: Read the output ROOT files, numpy arrays, or pickle files that contain the histogram data. Extract bin contents, uncertainties, and labels.
 

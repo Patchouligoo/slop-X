@@ -1,4 +1,4 @@
-## 6. Review Protocol
+## 5. Review Protocol
 
 **Review is mandatory, not aspirational.** Every phase has a defined review
 type. The review must be performed before the next phase begins. Skipping
@@ -10,7 +10,7 @@ gate points where errors are costly. Phases with high execution iteration
 (data exploration, selection) use lightweight review to avoid bottlenecking
 the natural trial-and-error of data analysis.
 
-### 6.1 Review Classification
+### 5.1 Review Classification
 
 All reviews — regardless of intensity — use the same classification:
 
@@ -21,17 +21,13 @@ All reviews — regardless of intensity — use the same classification:
   it. Tracked and resolved before the analysis is finalized.
 - **(C) Suggestions:** Style, clarity, or minor improvements.
 
-### 6.2 Tiered Review Structure
+### 5.2 Tiered Review Structure
 
 | Phase | Review type | Rationale |
 |-------|------------|-----------|
 | Phase 1: Strategy | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
-| Phase 2: Exploration | **Self-review** | Mostly mechanical (sample inventory, distributions). High execution iteration as the agent discovers data formats. Errors caught downstream in Phase 3. |
-| Phase 3: Processing | **1-bot + plot-validator** (single critical reviewer) | Physics mistakes become quantitative here. One external eye on closure tests and background/correction modeling. High execution iteration — don't bottleneck it. |
-| Phase 4a: Expected results | **4-bot + plot-validator** | Gates the 10% validation. The fit model, systematics, and expected results must be bulletproof. Full tribunal. |
-| Phase 4b: 10% validation | **4-bot + plot-validator** | The draft analysis note and 10% results must be polished before presenting to a human. The human should see a professional product, not a rough draft. |
-| Phase 4c: Full data | **1-bot + plot-validator** | Sanity check on post-fit diagnostics. Methodology already human-approved. |
-| Phase 5: Documentation | **5-bot + plot-validator** (physics + critical + constructive + rendering + arbiter) | The final product submitted for collaboration review. Worth the full treatment. |
+| Phase 2: Execution | **Self-review** during exploration; **4-bot + plot-validator** after inference | Exploration is mostly mechanical. But the fit model, systematics, and final results need full tribunal review. |
+| Phase 3: Review | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | The final product. Worth the full treatment. |
 
 **Plot-validator** is spawned alongside all other reviewers (in parallel) for
 every phase that produces figures (all phases except Phase 1 strategy-only).
@@ -44,19 +40,14 @@ for the complete validation protocol.
 **4-bot review** = physics reviewer + critical reviewer ("bad cop") +
 constructive reviewer ("good cop") + arbiter. The **physics reviewer**
 receives ONLY the physics prompt and the artifact — no methodology, no
-conventions. It reviews as a senior collaboration member (ARC/L2 convener)
-would: "Is this physics correct? Is it complete? Would I approve this?"
+conventions. It reviews as a senior collaboration member would: "Is this
+physics correct? Is it complete? Would I approve this?"
 The critical reviewer's goal is to find flaws — both in what is present
 and in what is absent. The constructive reviewer's goal is to strengthen
 the analysis — clarity, additional validation, improved presentation.
 Reviewers run in parallel (they cannot see each other's work); the arbiter
 reads all reviews (including the plot-validator report) and the original
 artifact, adjudicates disagreements, and issues PASS / ITERATE / ESCALATE.
-
-**5-bot review** (Phase 5 only) = physics + critical + constructive +
-rendering + plot-validator + arbiter. The rendering reviewer runs
-`pixi run build-pdf` and inspects the compiled PDF for figure rendering,
-math compilation, layout, and cross-references.
 
 **1-bot review** = single critical reviewer + plot-validator. Issues
 classified A/B/C. Plot-validator red flags are automatic Category A.
@@ -66,7 +57,7 @@ Executor addresses Category A items and re-submits. No arbiter needed.
 producing the artifact. Plan review and code review happen within the session.
 No separate agent invocation.
 
-### 6.3 Reviewer Framing
+### 5.3 Reviewer Framing
 
 The critical reviewer's job is not to check whether the artifact meets its
 own stated criteria. It is to evaluate whether the artifact would survive
@@ -81,8 +72,6 @@ to bring external standards to the evaluation:
   for this analysis technique? Is anything missing?
 - **Reference analyses:** What did published measurements of the same or
   similar observables do? Is anything they did missing here?
-- **Literature:** Would a query to the RAG corpus surface a standard
-  practice that this analysis omits?
 
 A reviewer that only checks internal consistency will miss the most
 dangerous class of errors: things that are absent. Closure tests passing,
@@ -113,25 +102,21 @@ reasoning (e.g., a subtle interaction between ISR treatment and the
 particle-level definition that no indexed paper discusses). Conventions and
 reference analyses partially mitigate this by providing external anchors the
 reviewer can check against mechanically, but the mitigation is bounded by
-the completeness of those documents. The human gate is the irreducible
-quality floor — it exists precisely to catch what the bot review cannot,
-and must not be treated as a formality.
+the completeness of those documents.
 
-### 6.4 Review Focus by Phase
+### 5.4 Review Focus by Phase
 
 | Phase | Review focus |
 |-------|-------------|
-| Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? Are 2-3 reference analyses identified with their systematic programs tabulated? |
-| Exploration | (Self-review) Are samples complete? Any data quality issues? Do distributions look physical? |
-| Processing | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Are particle-level inputs to the observable validated with data/MC comparisons per object category? Cutflow counts are monotonically non-increasing (Category A if violated)? **If an MVA is used:** is data/MC agreement on the classifier output acceptable? Are inputs well-modeled? Was an alternative architecture tried? |
-| 4a: Expected | Is the fit healthy? Are systematics complete — both internally consistent AND complete relative to conventions and reference analyses? Do signal injection tests pass? **Internal consistency:** if MVA mismodeling is a dominant systematic, was calibration or input restriction explored to reduce it? Is the operating point stability plot flat (Category A if not)? Are MC-dependent quantities only derived for data periods that have corresponding MC? |
-| 4b: 10% validation | Is the draft note publication-quality? Are 10% results consistent with expectations? Are diagnostics clean? |
-| 4c: Full data | Are post-fit diagnostics healthy? Are anomalies properly characterized? |
-| Documentation | See 6.4.3 below. |
+| Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? |
+| Execution (exploration) | (Self-review) Are samples complete? Any data quality issues? Do distributions look physical? |
+| Execution (selection) | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Cutflow counts monotonically non-increasing (Category A if violated)? **If MVA used:** is data/MC agreement acceptable? Was an alternative architecture tried? |
+| Execution (inference) | Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Do signal injection tests pass? Are post-fit diagnostics clean? Are observed results consistent with expected? |
+| Final results | See §5.4.3 below. |
 
-#### 6.4.1 Completeness Review (Phases 1 and 4a)
+#### 5.4.1 Completeness Review (Strategy and Inference)
 
-Reviews at Phase 1 (Strategy) and Phase 4a (Expected Results) must include an
+Reviews at Phase 1 (Strategy) and Phase 2 inference must include an
 explicit **completeness check** in addition to the standard correctness review.
 The completeness check asks what is *missing*, not just whether what is
 *present* is correct.
@@ -146,10 +131,10 @@ The completeness check asks what is *missing*, not just whether what is
   tabulates their systematic programs. If this table is missing, flag as
   Category A.
 
-**At Phase 4a:**
+**At inference (Phase 2.3):**
 
 The executor must produce a **systematic completeness table** as a
-mandatory section of the Phase 4a artifact. This table has two parts:
+mandatory section of the inference artifact. This table has two parts:
 
 1. **Planned vs. implemented.** Every systematic source listed in the
    Phase 1 strategy must appear with its implementation status. Any source
@@ -171,7 +156,7 @@ mandatory section of the Phase 4a artifact. This table has two parts:
    The reviewer must verify this table **row by row**. Any row with status
    MISSING or PARTIAL is Category A unless the justification column
    explains why (e.g., "resource unavailable — documented as limitation
-   in §5 and Future Directions"). The arbiter does not PASS with
+   in §4 and Future Directions"). The arbiter does not PASS with
    unresolved MISSING rows.
 
 - Cross-check the conventions document's "required validation checks"
@@ -184,24 +169,23 @@ standard systematic source. Internal consistency (closure tests pass, fits
 converge) is necessary but not sufficient — the review must also check
 external completeness (are we evaluating what the field considers standard?).
 
-#### 6.4.2 Figure and Label Review (all phases producing figures)
+#### 5.4.2 Figure and Label Review (all phases producing figures)
 
 Every review that evaluates figures — whether self-review, 1-bot, or multibot —
 must include a mechanical pass over all figures checking the following (see
-Appendix D for the plotting template that prevents most of these). These
+Appendix A for the plotting template that prevents most of these). These
 are Category A if wrong:
 
 - [ ] **√s and energy labels** match the actual dataset (not copied from a
   template for a different collider or energy)
 - [ ] **Experiment name** is correct in all figure text and annotations
-- [ ] **No figure titles** — captions in the note replace `ax.set_title()`
+- [ ] **No figure titles** — use captions instead of `ax.set_title()`
 - [ ] **Axis labels** include units in brackets; y-axis label matches the
   normalization actually applied
 - [ ] **Luminosity / event count** annotations match the data sample used
 - [ ] **Legend entries** match what is actually plotted (no stale labels from
   earlier iterations)
-- [ ] **Aspect ratios and font sizes** are consistent across all figures in
-  the note
+- [ ] **Aspect ratios and font sizes** are consistent across all figures
 - [ ] **Bin widths** are noted on the y-axis label for variable-width binning
 - [ ] **Uncertainties** are reasonable — error bars not suspiciously small or
   large relative to bin content
@@ -212,7 +196,7 @@ are Category A if wrong:
   visible, uncertainties shown
 - [ ] **Systematic breakdown** is sensible — individual sources smaller than
   total, dominant source identified. No single source with relative uncertainty
-  >100% in any bin (typically indicates a bug — see Appendix D)
+  >100% in any bin (typically indicates a bug — see Appendix A)
 - [ ] **Uncertainties make physical sense** — error bars proportional to bin
   content (for Poisson-dominated bins), systematics in the right ballpark
   for the analysis type
@@ -244,12 +228,8 @@ figure sizing problems. To mitigate this:
   setup function (figure size, font sizes, axis formatting) used by all
   scripts, rather than configuring each plot independently. This prevents
   inconsistency by construction rather than by review.
-- **Human spot-check.** Visual quality (overlaps, readability, aesthetics)
-  should be verified by a human at Phase 5 review rather than relying on
-  LLM visual inspection. The human gate at Phase 4b is a natural checkpoint
-  for this.
 
-#### 6.4.3 Plot Validation Protocol (all figure-producing phases)
+#### 5.4.3 Plot Validation Protocol (all figure-producing phases)
 
 The plot-validator agent runs alongside all other reviewers in every review
 cycle that evaluates phases producing figures. Unlike human or LLM visual
@@ -269,13 +249,11 @@ that do not require visual judgment.
 **Validation categories:**
 
 **A. Code compliance** (from plotting scripts):
-- mplhep style applied
-- Figure size matches template (10×10 or multiples)
+- `figsize=(10, 10)` (or multiples for subplots)
 - No `ax.set_title()` calls
-- No numeric `fontsize=` arguments
-- Axis labels set with units
-- `bbox_inches="tight"` at save time
-- Both PDF and PNG saved
+- Axis labels set with units in brackets
+- `bbox_inches="tight"` and `dpi=200` at save time
+- PNG format saved
 - `plt.close(fig)` after saving
 
 **B. Physics sanity** (from output data/histograms):
@@ -307,7 +285,7 @@ that do not require visual judgment.
 - Fit non-convergence
 
 Red flag findings from the plot-validator are passed directly to the arbiter
-(in 4/5-bot reviews) or treated as Category A (in 1-bot reviews). The
+(in 4-bot reviews) or treated as Category A (in 1-bot reviews). The
 arbiter must not downgrade red flags without explicit justification in the
 ARBITER report.
 
@@ -317,24 +295,23 @@ alongside the physics, critical, and constructive reviews. In 1-bot reviews,
 the critical reviewer reads the plot-validation report and incorporates its
 findings.
 
-#### 6.4.4 Documentation Review (Phase 5)
+#### 5.4.4 Final Results Review (Phase 3)
 
-The Phase 5 review is the last line of defense. It operates on the analysis
-note as a **standalone document** — the reviewer should evaluate it as a
-journal referee would, not as someone who has followed the analysis from
-Phase 1.
+The Phase 3 review evaluates the final results as a **complete package** —
+the reviewer should evaluate them as a journal referee would, not as someone
+who has followed the analysis from Phase 1.
 
-**Framing:** The reviewer reads only the analysis note (not experiment logs,
-not phase artifacts, not code). The question is: "Based solely on what is
-written here, am I convinced that this result is correct and complete?"
+**Framing:** The reviewer examines the final results, figures, and tables.
+The question is: "Based solely on what is here, am I convinced that this
+result is correct and complete?"
 
 **What this catches that earlier reviews may not:**
-- A systematic source that was planned in Phase 1 but quietly dropped and
-  never made it into the note
+- A systematic source that was planned in Phase 1 but quietly dropped
 - Validation evidence that exists in phase artifacts but was not included
-  in the note (e.g., particle-level data/MC plots were made but not shown)
+  in the final results (e.g., particle-level data/MC plots were made but
+  not shown)
 - Logical gaps: a claim is made (e.g., "the MC accurately models the
-  detector response") without the evidence to support it in the document
+  detector response") without the evidence to support it
 - Quantitative results that don't add up (e.g., efficiencies or event
   counts that are inconsistent between tables)
 
@@ -344,44 +321,41 @@ written here, am I convinced that this result is correct and complete?"
 - For every comparison to a reference (published data, MC prediction):
   is a quantitative compatibility metric given, and is the level of
   agreement or tension interpreted?
-- Does the note contain enough information that an independent analyst
+- Does the result contain enough information that an independent analyst
   could reproduce the measurement? (Selection criteria, binning, unfolding
   parameters, MC samples, correction procedures.)
 - Consult the applicable `conventions/` document one final time. Is
-  anything required there that is absent from the note?
-- Figures pass the cosmetic checklist (6.4.2).
+  anything required there that is absent from the final results?
+- Figures pass the cosmetic checklist (§5.4.2).
 
 The cost of this review is additional iteration loops if it finds gaps that
 should have been caught earlier. That cost is acceptable — it is better to
-iterate at Phase 5 than to publish an incomplete result.
+iterate at Phase 3 than to publish an incomplete result.
 
-### 6.4.5 Single-Session Review via Subagents
+### 5.4.5 Single-Session Review via Subagents
 
 When the analysis runs in a single session, reviews are implemented by
-spawning dedicated reviewer subagents (see §3a (`03a-orchestration.md`) for the full
-orchestrator protocol). The reviewer subagent reads the phase artifact from
-disk and applies the review criteria.
+spawning dedicated reviewer subagents. The reviewer subagent reads the phase
+artifact from disk and applies the review criteria.
 
 **Minimum review checklist (all phases):**
 
 | Phase | Minimum checks |
 |-------|---------------|
-| Strategy | Conventions consulted? Reference analyses tabulated? Systematic plan covers standard sources? |
-| Exploration | Sample inventory complete? Data quality checked? Experiment log updated? |
-| Selection | Every cut motivated by a plot? Per-category data/MC validation done? Cutflow complete? |
-| Inference (4a) | Systematic completeness table vs references? Prior-sensitivity check done? Alternative method run? Covariance matrix produced? |
-| Inference (4b/4c) | Results consistent with expectations? Post-fit diagnostics clean? |
-| Documentation | Per-systematic subsections present? Cross-checks co-located with relevant results (not in standalone section)? Math renders? `results/` directory populated? Figures pass cosmetic checklist (6.4.2)? BibTeX entries have DOI/arXiv links? |
+| 1: Strategy | Conventions consulted? Systematic plan covers standard sources? |
+| 2: Execution (exploration) | Sample inventory complete? Data quality checked? Experiment log updated? |
+| 2: Execution (selection) | Every cut motivated by a plot? Data/MC validation done? Cutflow complete? |
+| 2: Execution (inference) | Systematic completeness table? Signal injection tests pass? Post-fit diagnostics clean? Results consistent with expected? |
+| 3: Final review | `results/` directory populated? `analysis.py` runs and reproduces `results.json`? Figures pass cosmetic checklist (§5.4.2)? |
 
-**No self-review fallback.** All phases except Phase 2 require independent
+**No self-review fallback.** Strategy and final review require independent
 reviewer subagents. Self-review is not an acceptable substitute — the
 author reviewing their own work misses both correctness and completeness
-failures. If the agent framework cannot spawn subagents, the analysis
-cannot proceed past Phase 2.
+failures.
 
-### 6.5 Iteration and Escalation
+### 5.5 Iteration and Escalation
 
-For **4/5-bot reviews:** the cycle repeats until the arbiter issues PASS.
+For **4-bot reviews:** the cycle repeats until the arbiter issues PASS.
 Correctness is the termination condition. The orchestrator emits warnings
 after 3 iterations and a strong warning after 5 as signals that the issues
 may require human input. A configurable hard cap (default 10) forces
@@ -390,41 +364,28 @@ condition. The arbiter should ESCALATE rather than loop indefinitely.
 
 For **1-bot reviews:** the executor addresses Category A items and re-submits.
 These typically converge in 1–2 iterations; the orchestrator warns after 2 and
-escalates to a human after 3. Issues surviving 3 rounds of single-reviewer
-feedback likely need a fundamentally different approach or human judgment, not
+escalates after 3. Issues surviving 3 rounds of single-reviewer
+feedback likely need a fundamentally different approach, not
 another iteration of the same fix cycle.
 
 For **self-review:** no formal iteration — the agent corrects issues as it
 finds them during execution.
 
-### 6.6 The Human Gate
-
-The human gate is the point where the analysis pauses for human review.
-For **both** measurement and search analyses, the gate is between Phase 4b
-and Phase 4c. After Phase 4b's 4-bot review passes, the draft analysis note
-(including 10% results, post-fit diagnostics, and goodness-of-fit) is
-presented. The human approves proceeding to full data, requests changes, or
-halts the analysis.
-
-This is equivalent to a collaboration internal review. The human should
-receive a professional, publication-quality document — not a
-work-in-progress.
-
-### 6.7 Cost Controls
+### 5.6 Cost Controls
 
 To prevent runaway costs from pathological iteration:
 
-**Review iteration warnings:** For **4/5-bot reviews**, the orchestrator emits a
+**Review iteration warnings:** For **4-bot reviews**, the orchestrator emits a
 warning after **3** iterations and a strong warning after **5**. For **1-bot
-reviews**, the orchestrator warns after **2** and escalates to a human after
-**3** (1-bot issues that survive 3 rounds likely need a different approach or
-human judgment). These are soft thresholds — correctness remains the
+reviews**, the orchestrator warns after **2** and escalates after
+**3** (1-bot issues that survive 3 rounds likely need a different approach).
+These are soft thresholds — correctness remains the
 termination condition. A configurable hard cap (`max_review_iterations`,
 default 10) forces escalation if reached. In interactive mode, the
-orchestrator surfaces warnings to the human for guidance. In batch mode,
+orchestrator surfaces warnings for guidance. In batch mode,
 warnings are logged and the arbiter is prompted to consider ESCALATE.
 
-### 6.8 Phase Regression
+### 5.7 Phase Regression
 
 The pipeline is normally forward-only, but a reviewer or executor may discover
 that a fundamental assumption from an earlier phase is wrong — a major
@@ -475,7 +436,7 @@ Instead it follows a structured, minimal-read process:
 
 #### The fix cycle
 
-The orchestrator dispatches fixes automatically — no human gate for regression.
+The orchestrator dispatches fixes automatically.
 
 - **Origin phase:** the executor re-runs with the previous artifact, the
   regression ticket, and the experiment log as inputs. The arbiter reviews the
@@ -486,18 +447,17 @@ The orchestrator dispatches fixes automatically — no human gate for regression
 
 #### Timing
 
-Regression only triggers before the **human gate** — through Phase 4b
-(the human gate is between 4b and 4c for both measurements and searches).
-Once the human approves proceeding, discovered issues become Phase 5
-iteration items or documented observations, not regression triggers.
+Regression can be triggered at any point during the analysis pipeline.
+Once the final results are produced, discovered issues become iteration
+items or documented observations, not regression triggers.
 
 **Regression vs. documentation fix.** Not every issue found in review
 requires regression. The distinction:
 - **Physics issue** (wrong systematic treatment, missing background, flawed
   correction) → regression trigger. Re-run earlier phases.
 - **Presentation issue** (axis label wrong, figure unclear, caption sparse,
-  missing cross-reference) → Phase 5 iteration. Fix in the documentation
-  without re-running earlier phases.
+  missing cross-reference) → Phase 3 iteration. Fix without re-running
+  earlier phases.
 
 #### Upstream feedback (non-blocking)
 

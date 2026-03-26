@@ -1,11 +1,11 @@
-## 12. Scope Management and Downscoping
+## 8. Scope Management and Downscoping
 
 This section details the "downscope, don't block" principle from Section 1.
 When a resource is unavailable, the agent downscopes to what is achievable
 and documents the limitation — in the experiment log during execution, and
 in the final analysis note for the record.
 
-### 12.1 When to Downscope
+### 8.1 When to Downscope
 
 - **Data or MC is unavailable** (inaccessible, corrupt, doesn't exist)
 - **MC statistics are insufficient** for the intended method
@@ -14,7 +14,7 @@ in the final analysis note for the record.
 - **The method is disproportionate to the gain** (GNN for 5% improvement
   when a BDT gets 90% of the way)
 
-### 12.2 How to Downscope
+### 8.2 How to Downscope
 
 1. **Document the constraint** in the experiment log: what is unavailable,
    why, and what it prevents.
@@ -31,27 +31,24 @@ in the final analysis note for the record.
    limitation that exists only in the experiment log has not been properly
    documented.
 
-### 12.3 Key Scenarios
+### 8.3 Key Scenarios
 
 **Missing MC samples.** Omit if the process is small, or estimate its
 contribution from theory (cross-section × efficiency from a similar process).
 
 **Insufficient MC statistics.** Coarser binning, merged regions, or
-cut-and-count instead of shape fit. Include MC stat uncertainty as a
-systematic (Barlow-Beeston lite; pyhf supports this).
+cut-and-count instead of shape fit. Include MC stat uncertainty as a systematic.
 
 **Systematic sources that cannot be evaluated from own data/MC.** The agent
 must **not leave it as zero** — zero is never valid for a known non-zero
-effect. Instead: search the literature (via RAG) for the same or analogous
+effect. Instead: search the literature for the same or analogous
 measurement, adopt a conservative estimate, inflate if the phase space
 differs, and mark the systematic as "literature-derived" with a citation.
-Example: "Hadronization uncertainty estimated as 2% based on Pythia vs.
-Herwig variation in [published analysis]; conservative for our phase space."
 
 **Missing external measurements.** Use the best available literature value
 with a conservative uncertainty. Cite the source.
 
-### 12.4 Downscoping and Review
+### 8.4 Downscoping and Review
 
 Reviewers evaluate downscoping on two axes:
 1. **Is the chosen method adequate for the physics goal?** A reviewer should
@@ -60,7 +57,7 @@ Reviewers evaluate downscoping on two axes:
 2. **Is the limitation properly documented?** The analysis note must
    acknowledge what was not done, why, and the estimated impact.
 
-### 12.5 Redirect, Don't Stop
+### 8.5 Redirect, Don't Stop
 
 A blocked resource is a redirect signal, not a stop signal. When one path
 is blocked, the agent seeks parallel work that remains unblocked:
@@ -71,14 +68,13 @@ is blocked, the agent seeks parallel work that remains unblocked:
   comparisons, alternative selections — these validate the measurement and
   often surface issues visible only from multiple angles.
 - **Consult the literature.** Published correction factors, efficiency maps,
-  and previous measurements can substitute for missing MC. The RAG corpus
-  exists for this.
+  and previous measurements can substitute for missing MC.
 
 **Anti-pattern:** "MC unavailable → unfolding blocked → stop." Correct:
 "MC unavailable → measure everything else, extract maximum physics from
 detector-level data → document what unfolding will add when MC arrives."
 
-### 12.6 Feasibility for LLM Agents
+### 8.6 Feasibility for LLM Agents
 
 When evaluating feasibility, the question is "can an LLM agent do this?" —
 not "would a human find this easy?" LLM agents have different strengths and
@@ -96,11 +92,7 @@ in training data or retrieved literature, tasks requiring interactive tools
 
 **Agents CAN:**
 - Compile and run Fortran code (e.g., EVENT2, NNLO programs)
-- Install packages via `pixi add` — if conda-forge has it (`pixi search <pkg>`),
-  the agent can use it
-- Build external physics codes (EVENT2, MCFM, etc.) from source if the code is
-  accessible and build instructions exist
-- Dependencies like Fortran compilers (`gfortran`) are available via conda-forge
+- Use any packages available in the conda environment
 
 The question is whether a procedural path exists in documentation, not whether
 the task is "hard" for a human.
@@ -110,11 +102,11 @@ When a task falls in the "agents struggle" category, the agent should:
 2. Document the limitation clearly if it cannot be resolved
 3. Flag it for human review at the next gate
 
-### 12.7 Future Directions
+### 8.7 Future Directions
 
-The Phase 5 analysis note must include a **Future Directions** section that
-collects all downscoping decisions into a concrete roadmap: what was
+The final results should include a note on future directions that
+collects all downscoping decisions into a concrete summary: what was
 descoped, what resources are needed, what improvement is expected
-(quantitative where possible), and rough priority ordering.
+(quantitative where possible).
 
 ---

@@ -33,12 +33,11 @@ You are the background estimation specialist. For each background process, you d
 5. Read the theory scout output for background cross-sections and generator details.
 6. **Read the applicable `conventions/` file** for this analysis type to understand the required background systematic prescriptions. Use this as a checklist to verify that all convention-mandated background uncertainties are evaluated.
 
-## Pixi Workflow
+## Environment
 
 When writing and running any analysis scripts:
-- Use the pixi workflow as defined in `pyproject.toml` or `pixi.toml` at the project root.
-- Run scripts via `pixi run <task>` or `pixi run python <script>` to ensure the correct environment and dependencies are active.
-- Do not install packages manually or modify the environment outside of pixi.
+- Run scripts via `python3 <script>` using the active conda environment.
+- Do not install packages manually or modify the environment.
 - Place scripts in the `scripts/` subdirectory of the current phase directory.
 
 ## Background Estimation Methods

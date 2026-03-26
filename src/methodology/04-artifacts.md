@@ -1,9 +1,9 @@
-## 5. Artifact Format
+## 4. Artifact Format
 
 Every phase produces three types of written output, at different levels of
 formality:
 
-### 5.1 The Experiment Log
+### 4.1 The Experiment Log
 
 Each phase maintains an **experiment log** (`experiment_log.md`) — a persistent,
 append-only record of what was tried and what happened. This is the analysis
@@ -70,7 +70,7 @@ failed attempt. Concrete triggers:
 If the agent completes a phase without appending to the experiment log, the
 phase should be considered incomplete.
 
-### 5.2 The Primary Artifact
+### 4.2 The Primary Artifact
 
 Every phase produces a primary artifact (markdown or LaTeX) that serves as the
 handoff to subsequent phases and the permanent analysis record.
@@ -79,14 +79,11 @@ Artifacts must be **self-contained**: a reader with access only to the artifact
 and the experiment corpus should understand what was done, why, and what the
 results are.
 
-**Artifacts are analysis note source material.** Phase 4 artifacts in
-particular must be written at **publication quality** because the Phase 4b/5
-agent reads them directly to draft the analysis note. The artifact quality
-determines AN quality — a terse or poorly-written artifact produces a terse
-or poorly-written AN section. Write descriptions of methods, systematic
-evaluations, and cross-checks as if they were going straight into a journal
-publication. Include full context: what was done, why, what the result means,
-and how it relates to the physics goal.
+**Artifacts must be written at publication quality.** Inference artifacts
+in particular must be thorough because reviewers read them directly. Write
+descriptions of methods, systematic evaluations, and cross-checks as if they
+were going into a journal publication. Include full context: what was done,
+why, what the result means, and how it relates to the physics goal.
 
 ### Standard artifact sections:
 
@@ -97,16 +94,15 @@ and how it relates to the physics goal.
 4. **Validation** — Checks performed and their quantitative outcomes
 5. **Open issues** — What subsequent phases should be aware of
 6. **Code reference** — Where scripts live and how to re-execute. Every
-   result must be traceable to a `pixi run` command. List the exact task
-   names (e.g., `pixi run unfold`, `pixi run systematics`) that produced
-   the results, in execution order. A human or agent debugging the analysis
-   should be able to trace: result → artifact → `pixi run <task>` → script
-   → inputs.
+   result must be traceable to a `python3 script.py` command. List the exact
+   scripts (e.g., `python3 unfold.py`, `python3 run_systematics.py`) that
+   produced the results, in execution order. A human or agent debugging the
+   analysis should be able to trace: result → artifact → script → inputs.
 
 ### Presentation requirements:
 
 Artifacts are markdown documents with embedded figure references (paths to
-PDF/PNG files in the phase's `figures/` directory). Every quantitative claim
+PNG files in the phase's `figures/` directory). Every quantitative claim
 must be supported by a figure or table.
 
 **Figure captions must be self-contained.** A reader should understand what
@@ -138,7 +134,7 @@ uncertainties; the shaded band shows the total systematic uncertainty.
 The ratio panel shows data divided by MC. The data is systematically
 below the MC in the fit range $0.05 \leq \tau \leq 0.30$, reflecting the
 known tendency of the Pythia 6.1 LEP tune to overpredict soft hadronic
-activity.](figures/final_result_with_unc.pdf)
+activity.](figures/final_result_with_unc.png)
 ```
 
 **Caption requirements:**
@@ -150,25 +146,16 @@ activity.](figures/final_result_with_unc.pdf)
 - Sparse captions like "Thrust distribution" or "Data/MC comparison" are
   Category A review findings
 
-**Figure numbering and cross-referencing:** Pandoc automatically numbers
-figures in `\begin{figure}` environments when compiling to PDF. The
-markdown text body must reference figures by description (e.g., "as shown
-in the thrust distribution comparison (Figure X)") so that the compiled
-PDF has proper cross-references. In intermediate markdown artifacts, use
-descriptive references: "see the response matrix figure below."
-
 ### Figure standards:
 
-All figures must follow the template and rules in **Appendix D (Plotting
+All figures must follow the template and rules in **Appendix A (Plotting
 Template)**. That appendix is the single source of truth for figure sizing,
 styling, labels, and save conventions. Key non-negotiables:
 
-- **No titles on figures** — captions in the note replace `ax.set_title()`
+- **No titles on figures** — use axis labels and legends instead
 - **Axis labels with units** in brackets, e.g. `$p_T$ [GeV]`
-- **mplhep styling** with explicit experiment labels via `mh.label.exp_label`
-- **Wrong metadata** (√s, experiment name, luminosity) is a **Category A**
-  review finding
-- **PDF + PNG** output, `bbox_inches="tight"`, `dpi=200`, `transparent=True`
+- **PNG** output, `bbox_inches="tight"`, `dpi=200`
+- **figsize=(10, 10)** for single plots
 
 The artifact + its `figures/` directory must be self-contained — a reader
 should be able to evaluate the analysis from these alone.
@@ -179,12 +166,12 @@ Phases also produce data files, figures, and scripts in phase-specific
 subdirectories. Scripts are referenced from the artifact's code reference
 section for reproducibility.
 
-**Intermediate data files** (`.npz`, `.json`, pyhf workspaces, trained
-models) must include a brief README or docstring in the artifact explaining:
-what the file contains, how to load it (e.g., `np.load("results.npz")`
-with key names listed), and which pixi task produced it. A human or
-downstream agent encountering `results_phase3.npz` should know what's
-inside without reading the script that produced it.
+**Intermediate data files** (`.npz`, `.json`, `.h5`, trained models) must
+include a brief README or docstring in the artifact explaining: what the
+file contains, how to load it (e.g., `np.load("results.npz")` with key
+names listed), and which script produced it. A human or downstream agent
+encountering `results_phase3.npz` should know what's inside without
+reading the script that produced it.
 
 Additionally, any phase may produce these supplementary artifact types:
 
@@ -192,9 +179,9 @@ Additionally, any phase may produce these supplementary artifact types:
   an earlier phase did not consider (e.g., an unexpected background shape, a
   missing systematic). Non-blocking: the executor continues its own work. The
   orchestrator routes the feedback to the next review gate for the upstream
-  phase. See Section 6.8 for the full mechanism.
+  phase. See Section 5.7 for the full mechanism.
 - **`REGRESSION_TICKET.md`** — produced by the Investigator role when a
   regression trigger is confirmed. Contains root cause, affected phases,
-  unaffected phases, and fix scope. See Section 6.8.
+  unaffected phases, and fix scope. See Section 5.7.
 
 ---

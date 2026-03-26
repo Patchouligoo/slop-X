@@ -4,27 +4,21 @@
 
 | Phase | Artifact file | Must contain |
 |-------|---------------|-------------|
-| Strategy | `STRATEGY.md` | Signal/background enumeration, selection approach, blinding plan, systematics categories, literature citations, reference analysis systematic table |
-| Exploration | `EXPLORATION.md` | Sample inventory, data quality assessment, variable ranking, preselection cutflow, data/MC comparisons |
-| Processing | `SELECTION.md` | Selection definition, region definitions, background estimates, closure tests, per-cut distributions |
-| 4a: Expected | `INFERENCE_EXPECTED.md` | Systematic table with per-source detail, fit model or correction procedure, expected results, validation tests, systematic completeness table vs references, covariance matrix |
-| 4b: 10% validation | `INFERENCE_PARTIAL.md` + `ANALYSIS_NOTE_DRAFT.md` | 10% observed results, post-fit diagnostics, GoF, draft analysis note with full structure |
-| 4c: Full data | `INFERENCE_OBSERVED.md` | Full observed results, post-fit diagnostics, anomaly assessment, comparison to expected |
-| Documentation | `ANALYSIS_NOTE.md` + `results/` | Complete analysis note with all sections, figures, LaTeX math, machine-readable results |
+| 1: Strategy | `STRATEGY.md` | Signal/background enumeration, selection approach, systematics categories |
+| 2: Execution | `EXPLORATION.md` | Sample inventory, data quality assessment, variable ranking, preselection cutflow |
+| 2: Execution | `SELECTION.md` | Selection definition, region definitions, background estimates, closure tests, per-cut distributions |
+| 2: Execution | `INFERENCE.md` | Systematic table, fit model, expected + observed results, fit diagnostics |
+| 2: Execution | `analysis.py` + `results.json` | Self-contained script, machine-readable results (JSON) |
+| 3: Review | `review/` | Review artifacts (physics, critical, constructive, plot-validation, arbiter verdict) |
 
-### Analysis note completeness checklist
+### Final results completeness checklist
 
-The Phase 5 analysis note must satisfy ALL of these. Each is a Category A
+The final results must satisfy ALL of these. Each is a Category A
 review finding if absent:
 
-- [ ] LaTeX math delimiters used throughout (`$...$`, not plain text)
-- [ ] One subsection per systematic source (not just a summary table)
-- [ ] One subsection per cross-check (not just a mention)
-- [ ] Per-cut event selection with individual cut distributions and efficiencies
-- [ ] Full covariance matrix (statistical + systematic) in appendix
-- [ ] Machine-readable `results/` directory with spectrum, covariance, parameters
-- [ ] Comparison to published data with quantitative metric (not just "consistent")
-- [ ] `pixi.toml` has an `all` task reproducing the full chain
+- [ ] Machine-readable `results/` directory (JSON with spectrum, parameters)
+- [ ] Self-contained `analysis.py` script that reproduces results
+- [ ] All figures saved as PNG with clear labels and units
 - [ ] Experiment log is non-empty
 - [ ] All intermediate phase artifacts exist on disk
 

@@ -16,7 +16,7 @@ The argument is a phase identifier: `1`, `2`, `3`, `4a`, `4b`, `4c`, or `5`.
 
 1. Find the analysis directory (look for `STATE.md` in the current directory or immediate subdirectories, including under `analyses/`).
 2. Read `STATE.md` to confirm the analysis is at the correct phase. If the requested phase does not match the current phase in STATE.md, report the mismatch and stop unless the user explicitly confirms they want to run this phase out of order.
-3. Read `analysis_config.yaml` for configuration (model tier, channels, cost controls, pixi settings).
+3. Read `analysis_config.yaml` for configuration (model tier, channels, cost controls).
 
 ## Step 2: Read Phase Methodology
 
@@ -45,7 +45,7 @@ Each phase depends on artifacts from prior phases. Locate the latest version of 
 
 Update STATE.md: `status: executing`, `current phase: {phase}`, timestamp.
 
-All agents use `pixi run` for script execution and must read applicable `conventions/` files.
+All agents use `python3` for script execution and must read applicable `conventions/` files.
 
 ### Phase 1: Strategy
 
@@ -55,7 +55,7 @@ Spawn `lead-analyst` via SendMessage:
 - Working directory: `phase1_strategy/`
 - Expected output: `exec/STRATEGY.md`, updates to `experiment_log.md`
 - The agent should query the experiment corpus, identify signal/backgrounds, propose selection, define blinding, outline systematics
-- All scripts use `pixi run` for execution
+- All scripts use `python3` for execution
 
 ### Phase 2: Exploration
 
@@ -67,7 +67,7 @@ Spawn three agents **in parallel** via SendMessage:
 All read: `prompt.md`, latest `STRATEGY.md`, methodology (Phase 2 section)
 All read: applicable `conventions/` files
 All write to: `phase2_exploration/`
-All use `pixi run` for script execution
+All use `python3` for script execution
 
 After all complete, spawn `lead-analyst` to consolidate into `exec/EXPLORATION.md`.
 
@@ -78,7 +78,7 @@ Check `analysis_config.yaml` for channels. For each channel (or the single analy
 - Inputs: `prompt.md`, `STRATEGY.md`, `EXPLORATION.md`, methodology (Phase 3 section)
 - **Must read:** applicable `conventions/` files
 - Output: `exec/SELECTION.md` (or per-channel `SELECTION_{CHANNEL}.md`)
-- All scripts use `pixi run` for execution
+- All scripts use `python3` for execution
 
 If multi-channel, after all channels complete, spawn `lead-analyst` to produce `SELECTION_COMBINED.md`.
 
@@ -87,7 +87,7 @@ If multi-channel, after all channels complete, spawn `lead-analyst` to produce `
 1. Identify systematic sources from the strategy and selection artifacts
 2. Spawn `systematic-source-evaluator` agents **in parallel** (one per source)
    - **Must read:** applicable `conventions/` files
-   - All scripts use `pixi run` for execution
+   - All scripts use `python3` for execution
 3. After all complete, spawn `systematics-fitter`:
    - Builds statistical model, runs Asimov fits, signal injection tests
    - Output: `exec/INFERENCE_EXPECTED.md`
@@ -97,7 +97,7 @@ If multi-channel, after all channels complete, spawn `lead-analyst` to produce `
 1. Spawn `systematics-fitter`:
    - Runs fit on 10% SR data subsample (fixed random seed)
    - Output: `exec/INFERENCE_PARTIAL.md`
-   - Uses `pixi run` for execution
+   - Uses `python3` for execution
 2. Spawn `note-writer`:
    - Produces `exec/ANALYSIS_NOTE_DRAFT.md` and `exec/UNBLINDING_CHECKLIST.md`
    - **Must read:** applicable `conventions/` files for document formatting
@@ -108,7 +108,7 @@ If multi-channel, after all channels complete, spawn `lead-analyst` to produce `
 2. Spawn `systematics-fitter`:
    - Runs full fit on complete dataset
    - Output: `exec/INFERENCE_OBSERVED.md`
-   - Uses `pixi run` for execution
+   - Uses `python3` for execution
 3. Spawn `cross-checker`:
    - Validates consistency with partial and expected results
 

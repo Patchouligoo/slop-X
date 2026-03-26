@@ -36,12 +36,11 @@ You are the statistical inference specialist. You construct the likelihood model
 6. Read the theory scout output for theoretical systematic prescriptions.
 7. **Read the applicable `conventions/` file** for this analysis type. Use this as the authoritative checklist for systematic completeness: every source required by conventions must appear in the likelihood model or be explicitly documented as "Not applicable because [reason]."
 
-## Pixi Workflow
+## Environment
 
 When writing and running any fit scripts, workspace construction, or diagnostic code:
-- Use the pixi workflow as defined in `pyproject.toml` or `pixi.toml` at the project root.
-- Run scripts via `pixi run <task>` or `pixi run python <script>` to ensure the correct environment and dependencies are active.
-- Do not install packages manually or modify the environment outside of pixi.
+- Run scripts via `python3 <script>` using the active conda environment.
+- Do not install packages manually or modify the environment.
 - Place scripts in the `scripts/` subdirectory of the current phase directory.
 
 ## Plotting Standards

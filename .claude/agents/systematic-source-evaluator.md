@@ -31,12 +31,11 @@ You are a single-source systematic uncertainty evaluator. You evaluate ONE syste
 5. Read the relevant specialist output for prescriptions (detector specialist for experimental, theory scout for theory, background estimator for background estimation systematics).
 6. **Read the applicable `conventions/` file** for this analysis type. Verify that the systematic source you are evaluating is expected for this analysis type. If the source is listed in conventions, follow the prescribed evaluation method. If the source is NOT in conventions, flag it as "analysis-specific" and justify its inclusion. If a conventions-required source is being skipped, flag it as a gap.
 
-## Pixi Workflow
+## Environment
 
 When writing and running any scripts for systematic evaluation:
-- Use the pixi workflow as defined in `pyproject.toml` or `pixi.toml` at the project root.
-- Run scripts via `pixi run <task>` or `pixi run python <script>` to ensure the correct environment and dependencies are active.
-- Do not install packages manually or modify the environment outside of pixi.
+- Run scripts via `python3 <script>` using the active conda environment.
+- Do not install packages manually or modify the environment.
 - Place scripts in the `scripts/` subdirectory of the current phase directory.
 
 ## Execution Procedure

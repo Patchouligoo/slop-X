@@ -1,16 +1,10 @@
 ## Agent Roster and Prompt Templates
 
-This file defines the complete agent roster, phase-to-agent mapping, and the
+This file defines the agent roster, phase-to-agent mapping, and the
 prompt templates the orchestrator uses to launch each subagent. Detailed agent
 profiles with full domain knowledge, mandatory checklists, and output format
 specifications live in `.claude/agents/*.md` — those are the authoritative role
 definitions. This file provides the mapping and launch instructions.
-
-Context assembly follows methodology §3a.4.2 (three layers: bird's-eye
-framing, relevant methodology sections, upstream artifacts). The phase
-CLAUDE.md files (from `../templates/`) are what agents read at runtime;
-these prompts define how the *orchestrator* launches agents that will read
-those CLAUDE.md files.
 
 ---
 
@@ -18,80 +12,54 @@ those CLAUDE.md files.
 
 #### Execution Agents
 
-| Agent | Model | Primary phases | Description |
-|-------|-------|----------------|-------------|
-| `lead-analyst` | opus | 1, 2 (consolidation) | Strategy development, Phase 2 consolidation |
-| `theory-scout` | sonnet | 2 | Literature, cross-sections, generators |
-| `data-explorer` | haiku | 2 | Fast sample inventory, data quality |
-| `detector-specialist` | sonnet | 2 | Object definitions, calibrations |
-| `signal-lead` | sonnet | 3 | Event selection (5-step philosophy) |
-| `ml-specialist` | opus | 3 (if MVA) | BDT/DNN/ME discriminants |
-| `background-estimator` | sonnet | 3 | Background estimation, CR/VR design |
-| `systematic-source-evaluator` | sonnet | 4a | Per-source systematic (×N parallel) |
-| `systematics-fitter` | opus | 4a, 4b, 4c | Likelihood, fits, diagnostics |
-| `cross-checker` | sonnet | 4c | Independent validation |
-| `note-writer` | sonnet | 4b, 5 | Analysis note drafting |
+| Agent | Model | Phase | Description |
+|-------|-------|-------|-------------|
+| `lead-analyst` | opus | 1: Strategy | Strategy development |
+| `data-explorer` | opus | 1: Strategy | Fast sample inventory, data quality survey |
+| `signal-lead` | opus | 2: Execution | Event selection implementation |
+| `background-estimator` | opus | 2: Execution | Background estimation, CR/VR design, closure tests |
+| `systematics-fitter` | opus | 2: Execution | Systematic evaluation, fit model, produces `analysis.py` + `results.json` |
 
 #### Review Agents
 
-| Agent | Model | Review tiers | Description |
-|-------|-------|-------------|-------------|
-| `physics-reviewer` | opus | 4-bot, 5-bot | Senior physicist review (no methodology) |
-| `critical-reviewer` | opus | All tiers | Find flaws (bad cop) |
-| `constructive-reviewer` | opus | 4-bot, 5-bot | Strengthen analysis (good cop) |
-| `rendering-reviewer` | sonnet | 5-bot only | PDF compilation and rendering QA |
-| `plot-validator` | opus | All tiers | Programmatic + physics sanity checks on figures |
-| `arbiter` | opus | 4-bot, 5-bot | Adjudicate, issue PASS/ITERATE/ESCALATE |
-
-#### Support Agents
-
-| Agent | Model | When | Description |
-|-------|-------|------|-------------|
-| `investigator` | opus | Regression trigger | Impact tracing, REGRESSION_TICKET.md |
+| Agent | Model | Phase | Description |
+|-------|-------|-------|-------------|
+| `physics-reviewer` | sonnet | 3: Review | Senior physicist review (no methodology — pure physics) |
+| `critical-reviewer` | sonnet | 3: Review | Find flaws (bad cop) |
+| `constructive-reviewer` | sonnet | 3: Review | Strengthen analysis (good cop) |
+| `plot-validator` | sonnet | 3: Review | Programmatic + physics sanity checks on figures |
+| `arbiter` | opus | 3: Review | Adjudicate, issue PASS/ITERATE/ESCALATE |
 
 ---
 
 ### Phase-to-Agent Mapping
 
-| Phase | Executors | Review tier | Review agents |
-|-------|-----------|-------------|---------------|
-| **1: Strategy** | `lead-analyst` | 4-bot | physics + critical + constructive + plot-validator → arbiter |
-| **2: Exploration** | `data-explorer` + `detector-specialist` + `theory-scout` (parallel) → `lead-analyst` (consolidation) | Self-review | (none) |
-| **3: Selection** | `signal-lead` + `background-estimator` (per channel); `ml-specialist` if MVA | 1-bot | critical + plot-validator |
-| **4a: Expected** | `systematic-source-evaluator` (×N parallel) → `systematics-fitter` | 4-bot | physics + critical + constructive + plot-validator → arbiter |
-| **4b: Partial** | `systematics-fitter` + `note-writer` | 4-bot → human gate | physics + critical + constructive + plot-validator → arbiter |
-| **4c: Observed** | `systematics-fitter` + `cross-checker` | 1-bot | critical + plot-validator |
-| **5: Documentation** | `note-writer` | 5-bot | physics + critical + constructive + rendering + plot-validator → arbiter |
+| Phase | Executors | Review | Review agents |
+|-------|-----------|--------|---------------|
+| **1: Strategy** | `lead-analyst` + `data-explorer` (parallel) | 4-bot | physics + critical + constructive + plot-validator → arbiter |
+| **2: Execution** | `signal-lead` + `background-estimator` (parallel) → `systematics-fitter` | 4-bot after inference | physics + critical + constructive + plot-validator → arbiter |
+| **3: Review** | *(no executors — review only)* | 4-bot | physics + critical + constructive + plot-validator → arbiter |
 
 ---
 
 ### Model Tiering
 
-Read `model_tier` from `analysis_config.yaml`:
-
-| Role | `auto` (default) | `uniform_high` | `uniform_mid` |
-|------|-------------------|----------------|----------------|
-| Phase 1 executor | opus | opus | sonnet |
-| Phase 2 executors | haiku/sonnet | opus | sonnet |
-| Phase 3 executors | sonnet | opus | sonnet |
-| Phase 4 executors | opus (fitter), sonnet (others) | opus | sonnet |
-| Phase 5 executor | sonnet | opus | sonnet |
-| 4/5-bot reviewers | opus | opus | sonnet |
-| 1-bot reviewer | opus | opus | sonnet |
-| Plot-validator | opus | opus | sonnet |
-| Arbiter | opus | opus | sonnet |
-| Investigator | opus | opus | sonnet |
+| Role | Default |
+|------|---------|
+| Phase 1 executors | opus |
+| Phase 2 executors | opus |
+| All reviewers | sonnet |
+| Arbiter | opus |
 
 ---
 
 ### Execution Agent Launch Template
 
-**Context:** Bird's-eye framing, relevant methodology sections (per §3a.4.2
-table), physics prompt, upstream artifacts, experiment log (if exists),
-experiment corpus (via RAG), phase CLAUDE.md
+**Context:** Bird's-eye framing, relevant methodology sections, physics prompt,
+upstream artifacts, experiment log (if exists), experiment documentation
 
-**Writes:** `plan.md`, primary artifact (in `exec/`), `scripts/` and `figures/`
-(at phase level), appends to `experiment_log.md`
+**Writes:** `plan.md`, primary artifact, `scripts/` and `figures/`,
+appends to `experiment_log.md`
 
 **Instruction core:**
 ```
@@ -101,13 +69,11 @@ definition, mandatory evaluations, output format, and quality standards.
 
 Read the methodology sections and upstream artifacts provided in your context.
 Read the applicable conventions/ file for technique-specific requirements.
-Query the retrieval corpus as needed.
 
 Before writing code, produce plan.md. As you work:
-- Write analysis code to ../scripts/, figures to ../figures/ (phase level)
-- All code runs through pixi: `pixi run py path/to/script.py`
+- Write analysis code to scripts/, figures to figures/
+- All code runs via: `python3 path/to/script.py`
 - Follow the plotting template in methodology/appendix-plotting.md for ALL figures
-- Commit frequently with conventional commit messages
 - Append to experiment_log.md: what you tried, what worked, what didn't
 - Produce your primary artifact as {ARTIFACT_NAME}.md
 
@@ -121,7 +87,7 @@ When complete, state what you produced and any open issues.
 **Context:** Bird's-eye framing, physics prompt, artifact under review.
 **Does NOT receive:** Methodology spec, conventions files, review criteria.
 The physics reviewer evaluates the work purely as a senior collaboration
-member (ARC/L2 convener) would.
+member would.
 
 **Writes:** `{NAME}_PHYSICS_REVIEW.md`
 
@@ -153,26 +119,24 @@ For each finding, classify as (A) must resolve, (B) should address,
 
 ### Critical Reviewer Launch Template
 
-**Context:** Bird's-eye framing, review methodology (§6), applicable phase
-section from §3, artifact under review, upstream artifacts, experiment log,
-experiment corpus (via RAG)
+**Context:** Bird's-eye framing, review methodology (Section 5), applicable phase
+section from Section 3, artifact under review, upstream artifacts, experiment log
 
 **Writes:** `{NAME}_CRITICAL_REVIEW.md`
 
 **Instruction core:**
 ```
-You are a critical reviewer for a physics analysis that will be submitted
-for journal publication. Your detailed role instructions are in
-.claude/agents/critical-reviewer.md.
+You are a critical reviewer for a physics analysis. Your detailed role
+instructions are in .claude/agents/critical-reviewer.md.
 
 Your job is to find flaws — both in what is present (correctness) and in
 what is absent (completeness).
 
 Read the artifact and the experiment log (to understand what was tried).
-Read methodology/06-review.md §6.3 (reviewer framing) and §6.4 (review
-focus for this phase) — these define what you must check.
+Read methodology/05-review.md Section 5.3 (reviewer framing) and Section 5.4
+(review focus) — these define what you must check.
 Read the applicable conventions/ file and verify coverage row-by-row.
-Read methodology/appendix-plotting.md §6.4.2 for the figure checklist —
+Read methodology/appendix-plotting.md for the figure checklist —
 apply it to every figure.
 
 Before concluding, answer: "If a competing group published a measurement of
@@ -193,9 +157,8 @@ Err on the side of strictness.
 
 **Instruction core:**
 ```
-You are a constructive reviewer for a physics analysis targeting journal
-publication. Your detailed role instructions are in
-.claude/agents/constructive-reviewer.md.
+You are a constructive reviewer for a physics analysis. Your detailed role
+instructions are in .claude/agents/constructive-reviewer.md.
 
 Your job is to strengthen the analysis.
 
@@ -227,7 +190,9 @@ scripts produced by this phase. You do NOT rely on visual inspection —
 you examine the code, the data, and the output programmatically.
 
 Check:
-1. Plotting code compliance (mplhep style, figure size, no titles, etc.)
+1. Plotting code compliance (plain matplotlib, figsize=(10,10), no titles,
+   axis labels with units, bbox_inches="tight", dpi=200, PNG format,
+   plt.close(fig) — see methodology/appendix-plotting.md)
 2. Physics sanity (yields reasonable, distributions physical, ratios sensible)
 3. Consistency (same yields across plots, cutflow monotonic, normalization correct)
 4. Red flags (negative yields, efficiency > 1, chi2/ndf > 5, NP pull > 3σ)
@@ -237,34 +202,10 @@ Every failed check is a Category A finding. Produce a PLOT_VALIDATION report.
 
 ---
 
-### Rendering Reviewer Launch Template (Phase 5 only)
-
-**Context:** Bird's-eye framing, the analysis note, pixi environment
-
-**Writes:** `{NAME}_RENDERING_REVIEW.md`
-
-**Instruction core:**
-```
-You are the rendering reviewer. Your detailed role instructions are in
-.claude/agents/rendering-reviewer.md.
-
-Run `pixi run build-pdf` and inspect the compiled PDF for:
-- Figure rendering (correct, not corrupted, right size)
-- Math compilation (all LaTeX renders correctly)
-- Layout (proper page breaks, no orphaned text)
-- Cross-references (all @fig:, @tbl:, @eq: resolve)
-- Citations (all [@key] resolve to bibliography entries)
-- Page count (50-100 pages for full AN)
-
-Classify issues as (A) must resolve, (B) should address, (C) suggestion.
-```
-
----
-
 ### Arbiter Launch Template
 
-**Context:** Bird's-eye framing, review methodology (§6), artifact, all
-reviews (physics, critical, constructive, plot-validation, rendering if Phase 5)
+**Context:** Bird's-eye framing, review methodology (Section 5), artifact, all
+reviews (physics, critical, constructive, plot-validation)
 
 **Writes:** `{NAME}_ARBITER.md`
 
@@ -274,7 +215,7 @@ You are the arbiter. Your detailed role instructions are in
 .claude/agents/arbiter.md.
 
 Read the artifact and ALL reviews (physics, critical, constructive,
-plot-validation, and rendering if Phase 5). For each issue:
+plot-validation). For each issue:
 - If reviewers agree: accept the classification
 - If they disagree: assess independently with justification
 - If they all missed something: raise it yourself

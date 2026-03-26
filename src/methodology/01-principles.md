@@ -35,18 +35,17 @@ document it as a "known limitation" and move on.
   unnecessary step is correct; performing it without justification is not.
 - **No encoded physics — but accumulated conventions.** This specification
   describes methodology, not physics. The agent derives its physics approach
-  from the literature (via retrieval from the experiment's publication corpus)
-  and first principles. However, operational knowledge about specific analysis
+  from available documentation, training knowledge, and first principles. However, operational knowledge about specific analysis
   techniques (e.g., standard systematic sources for unfolded measurements,
   required validation checks for template fits) is maintained in the
   `conventions/` directory. These are living documents updated after each
   analysis — empirically grounded, not speculative. The agent consults
-  applicable conventions during strategy (Phase 1) and systematics (Phase 4a),
+  applicable conventions during strategy (Phase 1) and systematics (Phase 2),
   and updates them with new knowledge gained during the analysis.
 - **Downscope, don't block.** When a resource is unavailable (missing MC,
   insufficient statistics, inaccessible data, no GPU for large training),
   the agent downscopes to what is achievable now and documents what would
   improve the result with more resources. A complete analysis with a simpler
   method beats an incomplete analysis waiting for the ideal method. This is
-  standard scientific practice — see Section 12.
+  standard scientific practice — see Section 8.
 

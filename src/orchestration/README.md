@@ -11,7 +11,7 @@ directory defines *how* to execute it with agents.
 | `agents.md` | Literal prompt templates for each agent role (executor, reviewers, arbiter) — the orchestrator copies these when spawning subagents |
 | `automation.md` | Pseudocode for the orchestration loop (review tiers, regression handling, main pipeline example) |
 | `sessions.md` | Session naming, directory layout (ASCII tree), isolation model, concurrency |
-| `integration.md` | RAG corpus setup (MCP tools), Claude Code team mapping, adaptation to other systems |
+| `integration.md` | Integration notes (RAG not available in this setup) |
 
 ## Relationship to other layers
 
@@ -21,5 +21,5 @@ directory defines *how* to execute it with agents.
   Templates are what agents read at runtime. This directory defines how the
   orchestrator assembles context and spawns agents that read those templates.
 - **Conventions** (`../conventions/`) — domain knowledge symlinked into
-  analyses. Orchestration defines when conventions are consulted (Phases 1,
-  4a, 5); conventions define what to check.
+  analyses. Orchestration defines when conventions are consulted (Phase 1:
+  strategy); conventions define what to check.

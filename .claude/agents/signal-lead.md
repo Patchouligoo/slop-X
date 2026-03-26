@@ -1,6 +1,6 @@
 ---
 name: signal-lead
-description: Signal selection development agent. Implements the selection following the 5-step philosophy (preselection, topology, MVA, categorization, shape/counting) with mandatory evaluations of categorization and shape vs counting approaches. References plotting template and pixi workflow.
+description: Signal selection development agent. Implements the selection following the 5-step philosophy (preselection, topology, MVA, categorization, shape/counting) with mandatory evaluations of categorization and shape vs counting approaches. References plotting template.
 tools:
   - Read
   - Write
@@ -35,12 +35,11 @@ You are the signal selection development specialist. You design and implement th
 5. Read the detector specialist output to understand object definitions and performance.
 6. Read `methodology/appendix-plotting.md` for the plotting template that all figures must follow.
 
-## Pixi Workflow
+## Environment
 
 When writing and running any analysis scripts:
-- Use the pixi workflow as defined in `pyproject.toml` or `pixi.toml` at the project root.
-- Run scripts via `pixi run <task>` or `pixi run python <script>` to ensure the correct environment and dependencies are active.
-- Do not install packages manually or modify the environment outside of pixi.
+- Run scripts via `python3 <script>` using the active conda environment.
+- Do not install packages manually or modify the environment.
 - Place scripts in the `scripts/` subdirectory of the current phase directory.
 
 ## Plotting Standards

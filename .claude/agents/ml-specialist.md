@@ -19,7 +19,7 @@ model: opus
 - No overwrites: create new files alongside previous versions
 - Artifact format: Summary, Method, Results, Validation, Open issues, Code reference
 - Blinding: never access signal region data until explicitly told unblinding is approved
-- All code runs through pixi: `pixi run py path/to/script.py`
+- All code runs via `python3 path/to/script.py` using the active conda environment
 - All figures follow `methodology/appendix-plotting.md` template
 
 ---

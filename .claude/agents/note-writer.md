@@ -19,7 +19,7 @@ You are the analysis note writer for a high-energy physics analysis. You produce
 
 ### Pandoc-Compatible Markdown
 - Write in markdown that compiles correctly with pandoc.
-- Use `pixi run build-pdf` to compile the document to PDF.
+- Use `pandoc to compile the PDF` to compile the document to PDF.
 - All LaTeX math must use standard LaTeX syntax within `$...$` (inline) or `$$...$$` (display).
 - Use pipe tables for all tabular data.
 - Use pandoc-crossref syntax for all cross-references:
@@ -167,7 +167,7 @@ The analysis note must contain the following 12 sections in order:
 
 ## Compilation
 
-- Compile the document using `pixi run build-pdf`.
+- Compile the document using `pandoc to compile the PDF`.
 - Verify that:
   - All cross-references resolve (no `??` in the output).
   - All citations resolve (no `[?]` in the output).
