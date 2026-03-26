@@ -114,7 +114,7 @@ binding — reviews check against it. Silent omissions are Category A findings
 
 ## Review Protocol
 
-See `methodology/06-review.md` for the full protocol. Key rules:
+See `methodology/05-review.md` for the full protocol. Key rules:
 
 **Classification:** **(A) Must resolve** — blocks advancement. **(B) Must fix
 before PASS** — weakens the analysis. **(C) Suggestion** — applied before
@@ -145,7 +145,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
 ```
 
-See `methodology/11-coding.md` for full coding practices.
+See `methodology/07-coding.md` for full coding practices.
 
 ---
 
