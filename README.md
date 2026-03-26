@@ -1,179 +1,133 @@
-# SLOP-X BASED ON SLOPSPECv1
+# SLOP-X
 
-LLM-driven HEP analysis framework. An orchestrator agent delegates work to
-subagents through five sequential phases, producing a publication-quality
-analysis note.
-
-## Quick start
-
-```bash
-pixi run scaffold analyses/my_analysis --type measurement
-cd analyses/my_analysis
-# Edit .analysis_config → set data_dir=/path/to/data, add allow= lines
-pixi install
-claude   # pass your physics prompt
-```
+LLM-driven HEP bump hunt analysis framework. An orchestrator agent delegates
+work to specialist subagents through three sequential phases, producing a
+self-contained analysis script and measured signal strength.
 
 ## How it works
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     ORCHESTRATOR                             │
-│  Never writes code. Holds: prompt, summaries, verdicts only  │
+│                      ORCHESTRATOR                           │
+│  Never writes code. Holds: prompt, summaries, verdicts only │
 └─────┬───────────────────────────────────────────────────────┘
       │
       ▼
- ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
- │ Phase 1  │──▶│ Phase 2  │──▶│ Phase 3  │──▶│ Phase 4a │──▶│ Phase 4b │──▶│ Phase 4c │──▶│ Phase 5  │
- │ Strategy │   │ Explore  │   │Processing│   │ Expected │   │  10% Val │   │Full Data │   │ Document │
- │ (4-bot)  │   │ (self)   │   │ (1-bot)  │   │ (4-bot)  │   │(4-bot+HG)│   │ (1-bot)  │   │ (5-bot)  │
- └──────────┘   └──────────┘   └──────────┘   └──────────┘   └────┬─────┘   └──────────┘   └──────────┘
-                                                                   │
-                                                             HUMAN GATE
-```
-
-Each phase runs the same loop:
-
-```
-  1. EXECUTE ── spawn executor subagent (enters plan mode first)
-  2. REVIEW ─── spawn reviewer(s) per review type
-  3. CHECK:
-       Regression trigger? → Investigator → fix origin + downstream → resume
-       A or B items?       → fix agent + fresh reviewer → re-review (loop)
-       Only C items?       → PASS, executor applies Cs before commit
-  4. COMMIT
-  5. HUMAN GATE (after 4b for both measurements and searches)
-  6. ADVANCE
+ ┌──────────┐   ┌──────────────┐   ┌──────────┐
+ │ Phase 1  │──▶│   Phase 2    │──▶│ Phase 3  │
+ │ Strategy │   │  Execution   │   │  Review  │
+ │ (4-bot)  │   │  (4-bot)     │   │ (4-bot)  │
+ └──────────┘   └──────────────┘   └──────────┘
 ```
 
 ### Phases
 
-| Phase | Review | Key deliverable |
-|-------|--------|-----------------|
-| **1. Strategy** | 4-bot | Technique selection, systematic plan, reference analysis table, conventions enumeration |
-| **2. Exploration** | Self | Sample inventory, data quality, variable ranking, preselection cutflow |
-| **3. Processing** | 1-bot | Event selection, correction chain or background model, closure tests |
-| **4a. Expected** | 4-bot | Systematic completeness table, covariance matrix, reference comparisons |
-| **4b. 10% Validation** | 4-bot | 10% data results, draft AN with full structure, human gate |
-| **4c. Full Data** | 1-bot | Full observed results, post-fit diagnostics |
-| **5. Documentation** | 5-bot | Analysis note (pandoc markdown → PDF, 50-100 pages), machine-readable results |
+| Phase | Executors | Review | Key deliverables |
+|-------|-----------|--------|------------------|
+| **1. Strategy** | `lead-analyst` + `data-explorer` | 4-bot | `STRATEGY.md`, `DATA_SURVEY.md` |
+| **2. Execution** | `signal-lead` + `background-estimator` → `systematics-fitter` | 4-bot | `SELECTION.md`, `BACKGROUND.md`, `INFERENCE.md`, `analysis.py`, `results.json` |
+| **3. Review** | *(none — review only)* | 4-bot | PASS / ITERATE / ESCALATE |
 
-Both measurements and searches follow the same 4a → 4b → 4c flow. The
-human gate is between 4b and 4c.
+Phase 2 runs in substages: data exploration, selection & background estimation
+(parallel), then statistical analysis and validation (sequential).
 
-### Review classification
+### Review cycle
+
+Each review runs four reviewers in parallel, then an arbiter:
+
+```
+physics-reviewer + critical-reviewer + constructive-reviewer + plot-validator
+                              │
+                              ▼
+                           arbiter
+                              │
+                    ┌─────────┼──────────┐
+                    ▼         ▼          ▼
+                  PASS     ITERATE    ESCALATE
+```
 
 | Cat | Meaning | Action |
 |-----|---------|--------|
-| **A** | Would cause rejection | Fix + re-review + fresh reviewer |
-| **B** | Weakens the analysis | Same — must be zero before PASS |
-| **C** | Style / clarity | Arbiter PASses; executor applies before commit |
+| **A** | Would cause rejection | Must fix before PASS |
+| **B** | Weakens the analysis | Should address |
+| **C** | Style / clarity | Suggestion only |
 
-Fresh reviewer added each iteration cycle. Limits: 4/5-bot warn at 3,
-strong warn at 5, hard cap at 10. 1-bot warn at 2, escalate at 3.
+Warn at iteration 3, hard cap at 10.
 
-### Phase regression
+### Agents
 
-Any review can trigger regression when a physics issue is traceable to an
-earlier phase. Most common after Phase 4a/4b and Phase 5 reviews.
-
-```
-Reviewer finds physics issue from Phase M < current Phase N
-  → Investigator traces impact → REGRESSION_TICKET.md
-  → Fix cycle: re-run Phase M, re-run affected downstream, skip unaffected
-  → Resume review at Phase N
-```
-
-### Phase 5: 5-bot review
-
-```
-Physics + Critical (referee) + Constructive + Rendering (reads compiled PDF) + Arbiter
-```
-
-The rendering reviewer runs `pixi run build-pdf` and uses the Read tool to
-visually inspect the PDF for figure rendering, math compilation, layout, and
-cross-references.
+| Agent | Model | Role |
+|-------|-------|------|
+| `lead-analyst` | opus | Strategy development |
+| `data-explorer` | opus | Data file survey and quality checks |
+| `signal-lead` | opus | Event selection implementation |
+| `background-estimator` | opus | Background estimation and closure tests |
+| `systematics-fitter` | opus | Fit model, systematics, `analysis.py` + `results.json` |
+| `physics-reviewer` | sonnet | Physics correctness review |
+| `critical-reviewer` | sonnet | Methodology and completeness review |
+| `constructive-reviewer` | sonnet | Improvement suggestions |
+| `plot-validator` | sonnet | Programmatic figure validation |
+| `arbiter` | opus | Synthesizes reviews, issues verdict |
 
 ## Key concepts
 
-**Technique decided at Phase 1, not scaffold time.** The scaffolder only
-takes `--type measurement|search`. The strategy phase selects the technique
-(unfolding, template fit, etc.), which activates technique-specific
-requirements in later phases.
+**Session isolation.** Every agent invocation is a separate session with
+explicitly defined inputs and outputs. No shared conversation history. The
+only mutable shared state within a phase is `experiment_log.md`.
+
+**Artifacts over memory.** Each phase produces self-contained written reports.
+Subsequent phases read these reports, not prior conversation history.
 
 **Conventions.** Domain knowledge in `src/conventions/` (symlinked into each
-analysis). Mandatory reads at Phases 1, 4a, and 5. Updated after analysis
-completion.
+analysis). Consulted during Phase 1 (strategy) for technique-specific
+requirements.
 
-**Feasibility evaluation.** When hitting a limitation (missing MC, etc.),
-agents must: state it → evaluate feasibility → estimate cost → decide
-(attempt if it affects the core result, document if minor or infeasible) →
-log the reasoning.
-
-**Isolation.** A PreToolUse hook checks every file access against
-`.analysis_config` (which lists `data_dir` and `allow=` paths). Symlinks
-within the analysis dir (like `conventions/`) are allowed via logical path
-checking.
-
-**Pixi everywhere.** Each analysis has its own `pixi.toml` with deps and
-tasks. `pixi run all` is the reproducibility contract. `pixi run build-pdf`
-compiles the analysis note via pandoc.
+**Downscope, don't block.** When hitting a limitation (missing MC, etc.),
+agents downscope to what is achievable and document what would improve the
+result. A complete analysis with a simpler method beats an incomplete one.
 
 ## Directory structure
 
 ```
-reslop/
-  src/                        Spec infrastructure
-    methodology/              Methodology spec (human reference)
-    orchestration/            Session management (human reference)
-    conventions/              Domain knowledge (symlinked into analyses)
-    templates/                CLAUDE.md and pixi.toml templates
-    scaffold_analysis.py      Scaffolder
-  analyses/                   Each is its own git repo
-    <name>/
-      CLAUDE.md               ~570 lines — self-contained instructions
-      pixi.toml               Environment + task graph
-      .analysis_config        data_dir + allow paths for isolation hook
-      conventions/ → src/conventions/
-      phase{1..5}_*/          Phase dirs with CLAUDE.md, exec/, scripts/, figures/, review/
+slop-X/
+  .claude/
+    agents/              Agent role definitions (one .md per agent)
+    skills/              Orchestration skills (/run-analysis, /review-phase, etc.)
+  src/
+    methodology/         Methodology spec (10 files, see methodology/README.md)
+    orchestration/       Session management, agent templates, automation pseudocode
+    conventions/         Domain knowledge (symlinked into analyses)
+    templates/           CLAUDE.md template for bump hunt analyses
 ```
 
-## How scaffolding works
+### Methodology files
 
-The scaffolder (`pixi run scaffold`) creates a new analysis directory from
-templates in `src/templates/`:
+| File | Content |
+|------|---------|
+| `01-principles.md` | Scope, quality bar, design principles |
+| `02-inputs.md` | Required inputs (data, physics prompt, context) |
+| `03-phases.md` | Three-phase workflow with deliverables |
+| `04-artifacts.md` | Artifact format and structure requirements |
+| `05-review.md` | Review tiers, criteria, iteration rules |
+| `06-tools.md` | Available software (numpy, scipy, ROOT, matplotlib, h5py, etc.) |
+| `07-coding.md` | Coding standards and reproducibility |
+| `08-downscoping.md` | Feasibility evaluation and graceful degradation |
+| `appendix-plotting.md` | Plain matplotlib plotting template |
+| `appendix-checklist.md` | Phase completion checklists |
 
-1. **Template files** (`src/templates/root_claude.md`, `phase*_claude.md`,
-   `pixi.toml`) are copied into the analysis directory with `{{name}}` and
-   `{{analysis_type}}` placeholders replaced.
-2. **Phase directories** (`phase1_strategy/`, `phase2_exploration/`,
-   `phase3_selection/`, `phase4_inference/`, `phase5_documentation/`) are
-   created with `exec/`, `scripts/`, `figures/`, and `review/` subdirs.
-3. **Conventions symlink** — `conventions/` → `../../src/conventions/` is
-   created so agents can read domain knowledge.
-4. **`.analysis_config`** is created with `analysis_type` set. Edit it to
-   add `data_dir=` pointing to the input data.
-5. **Git repo** is initialized in the analysis directory.
+## Output
 
-6. **Methodology symlink** — `methodology/` → `../../src/methodology/` is
-   created so agents can consult the full methodology spec for detailed
-   protocol definitions.
+The pipeline produces:
+- `analysis.py` — self-contained script that reads `data.h5` and `cr_data.h5`,
+  performs selection, background estimation, and fit, writes `results.json`
+- `results.json` — `{"mu_val": <float>, "mu_err": <float>}`
 
-After scaffolding, the analysis directory is self-contained: its CLAUDE.md
-files carry the essential instructions for execution. The full methodology
-spec (`src/methodology/`) is also available via symlink for agents that need
-detailed protocol definitions (review criteria, blinding protocol, etc.).
+## Environment
 
-**How templates map to methodology:** Each template distills the relevant
-methodology sections into execution-ready instructions:
-- `root_claude.md` — §3 (phases), §6 (review, summary), §10 (scaling), §12 (feasibility)
-- `phase1_claude.md` — §3 Phase 1, §6.4 review focus for strategy
-- `phase2_claude.md` — §3 Phase 2, §5 (artifact format)
-- `phase3_claude.md` — §3 Phase 3, §6.4 review focus for selection
-- `phase4_claude.md` — §3 Phase 4, §4 (blinding), §6.4 review focus for inference
-- `phase5_claude.md` — §3 Phase 5, §6.4.3 (documentation review), Appendix D (plotting)
+All scripts run via `python3 <script>` using the active conda environment.
+Available packages: numpy, pandas, scipy, matplotlib, h5py, ROOT, tqdm, logging.
 
 ## Requirements
 
-- [pixi](https://pixi.sh) for environment management
 - [Claude Code](https://claude.ai/claude-code) as the agent runtime
+- Conda environment with HEP packages (see `06-tools.md` for full list)
