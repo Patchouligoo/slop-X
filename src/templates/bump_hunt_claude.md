@@ -56,9 +56,7 @@ and phase-to-agent mapping is in `orchestration/agents.md`.
   or rushing past issues. If a reviewer finds problems, have the work redone
   properly — not minimally patched.
 
-**Subagent model selection:** All subagents — executors, reviewers, arbiters,
-fix agents — must be spawned with `model: "opus"`. Never use Sonnet or Haiku
-for any analysis subagent. This is non-negotiable.
+{{model_tiers}}
 
 **Subagent file reading:** Instruct all subagents to use the Read tool to
 read files in full (no line limits). Never use `cat`, `sed`, `head`, or

@@ -12,23 +12,23 @@ definitions. This file provides the mapping and launch instructions.
 
 #### Execution Agents
 
-| Agent | Model | Phase | Description |
-|-------|-------|-------|-------------|
-| `lead-analyst` | opus | 1: Strategy | Strategy development |
-| `data-explorer` | opus | 1: Strategy | Fast sample inventory, data quality survey |
-| `signal-lead` | opus | 2: Execution | Event selection implementation |
-| `background-estimator` | opus | 2: Execution | Background estimation, CR/VR design, closure tests |
-| `systematics-fitter` | opus | 2: Execution | Systematic evaluation, fit model, produces `analysis.py` + `results.json` |
+| Agent | Phase | Description |
+|-------|-------|-------------|
+| `lead-analyst` | 1: Strategy | Strategy development |
+| `data-explorer` | 1: Strategy | Fast sample inventory, data quality survey |
+| `signal-lead` | 2: Execution | Event selection implementation |
+| `background-estimator` | 2: Execution | Background estimation, CR/VR design, closure tests |
+| `systematics-fitter` | 2: Execution | Systematic evaluation, fit model, produces `analysis.py` + `results.json` |
 
 #### Review Agents
 
-| Agent | Model | Phase | Description |
-|-------|-------|-------|-------------|
-| `physics-reviewer` | sonnet | 3: Review | Senior physicist review (no methodology — pure physics) |
-| `critical-reviewer` | sonnet | 3: Review | Find flaws (bad cop) |
-| `constructive-reviewer` | sonnet | 3: Review | Strengthen analysis (good cop) |
-| `plot-validator` | sonnet | 3: Review | Programmatic + physics sanity checks on figures |
-| `arbiter` | opus | 3: Review | Adjudicate, issue PASS/ITERATE/ESCALATE |
+| Agent | Phase | Description |
+|-------|-------|-------------|
+| `physics-reviewer` | 1,2,3: Review | Senior physicist review (no methodology — pure physics) |
+| `critical-reviewer` | 1,2,3: Review | Find flaws (bad cop) |
+| `constructive-reviewer` | 1,2,3: Review | Strengthen analysis (good cop) |
+| `plot-validator` | 1,2,3: Review | Programmatic + physics sanity checks on figures |
+| `arbiter` | 1,2,3: Review | Adjudicate, issue PASS/ITERATE/ESCALATE |
 
 ---
 
@@ -44,12 +44,10 @@ definitions. This file provides the mapping and launch instructions.
 
 ### Model Tiering
 
-| Role | Default |
-|------|---------|
-| Phase 1 executors | opus |
-| Phase 2 executors | opus |
-| All reviewers | sonnet |
-| Arbiter | opus |
+Model assignments for each agent are specified in `CLAUDE.md` under the
+**Model Assignments** section. These are set by the pipeline configuration
+and override any defaults in agent profile frontmatter. Always check
+`CLAUDE.md` for the authoritative model assignment before spawning an agent.
 
 ---
 
