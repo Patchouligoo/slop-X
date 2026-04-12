@@ -43,8 +43,8 @@ The experiment log is:
 - **Persists across agent sessions within a phase** — if the executor iterates
   10 times, all 10 sessions append to the same log
 - **Never empty at the end of a phase.** An empty experiment log at the end
-  of Phase 2 or later means the agent did not document its exploration
-  process. This is a review finding.
+  of any phase means the agent did not document its work process. This is a
+  review finding.
 
 The experiment log is especially valuable for Phases 2–3 where iteration is
 high. It prevents agents from re-trying failed approaches and gives humans

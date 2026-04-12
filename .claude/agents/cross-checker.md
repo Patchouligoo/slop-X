@@ -95,7 +95,7 @@ Check for the 14 most common bugs in HEP analyses:
 11. **JEC/JER**: Jet energy corrections not applied or applied in wrong order.
 12. **MET filters**: Recommended MET filters not applied.
 13. **Golden JSON**: Events not filtered by the certified luminosity mask.
-14. **Blinding violation**: Signal region examined before the analysis was approved for unblinding.
+14. **Stale labels**: Figure labels or annotations copied from a template for a different dataset or energy.
 
 For each item, document whether it was checked and the result.
 

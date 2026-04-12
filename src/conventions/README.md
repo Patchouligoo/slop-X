@@ -35,6 +35,6 @@ One file per analysis technique or method. Each file covers:
   published reference analyses, not from speculation.
 - **Agent-maintained.** Agents update conventions when they encounter new
   knowledge. Human review before merging.
-- **Consulted at Phase 1 (Strategy) and Phase 4a (Systematics).** The
+- **Consulted at Phase 1 (Strategy) and Phase 2 (Execution).** The
   strategy phase uses conventions to plan the systematic program. The
-  Phase 4a review checks completeness against conventions.
+  Phase 2 review checks completeness against conventions.

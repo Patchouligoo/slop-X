@@ -125,8 +125,8 @@ programmatic (not visual) checks on plotting code and output data. Red flags
 from the plot-validator are automatic Category A — the arbiter must not
 downgrade them. See `.claude/agents/plot-validator.md` for the protocol.
 
-**Iteration limits:** 4-bot: warn at 3, strong warn at 5, hard cap at 10.
-1-bot: warn at 2, escalate after 3. All subagents use `model: "opus"`.
+**Iteration limits:** Warn at 3, strong warn at 5, hard cap at 10.
+All subagents use `model: "opus"`.
 
 ---
 

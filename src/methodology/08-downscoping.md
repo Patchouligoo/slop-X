@@ -3,7 +3,7 @@
 This section details the "downscope, don't block" principle from Section 1.
 When a resource is unavailable, the agent downscopes to what is achievable
 and documents the limitation — in the experiment log during execution, and
-in the final analysis note for the record.
+in the phase artifacts for the record.
 
 ### 8.1 When to Downscope
 
@@ -23,11 +23,11 @@ in the final analysis note for the record.
    systematics, simpler background model).
 3. **Quantify the impact.** Estimate what the missing resource would have
    contributed, using literature or cross-section ratios where possible.
-4. **Carry it through to the analysis note.** Every downscoping decision
-   must appear in the final AN: in the relevant method section (explaining
-   what was done instead and why), in the systematic uncertainty table (as
-   a literature-derived entry or documented omission), and in the Future
-   Directions section (as a concrete improvement for follow-up work). A
+4. **Carry it through to the phase artifacts.** Every downscoping decision
+   must appear in the relevant artifact: in `STRATEGY.md` (if a strategic
+   constraint) or `INFERENCE.md` (if an execution constraint), explaining
+   what was done instead and why. Include it in the systematic uncertainty
+   table (as a literature-derived entry or documented omission). A
    limitation that exists only in the experiment log has not been properly
    documented.
 
@@ -54,7 +54,7 @@ Reviewers evaluate downscoping on two axes:
 1. **Is the chosen method adequate for the physics goal?** A reviewer should
    NOT flag "you could have used a more complex method" as Category A unless
    the simpler method is demonstrably inadequate.
-2. **Is the limitation properly documented?** The analysis note must
+2. **Is the limitation properly documented?** The phase artifacts must
    acknowledge what was not done, why, and the estimated impact.
 
 ### 8.5 Redirect, Don't Stop
@@ -104,7 +104,7 @@ When a task falls in the "agents struggle" category, the agent should:
 
 ### 8.7 Future Directions
 
-The final results should include a note on future directions that
+The `INFERENCE.md` artifact should include a future directions section that
 collects all downscoping decisions into a concrete summary: what was
 descoped, what resources are needed, what improvement is expected
 (quantitative where possible).

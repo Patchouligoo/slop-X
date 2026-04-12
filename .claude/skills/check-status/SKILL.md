@@ -16,19 +16,16 @@ Display the current status of the analysis pipeline.
 
 2. Read `STATE.md` in full.
 
-3. Read `analysis_config.yaml` to get the analysis name, channels, and blinding status.
+3. Read `experiment_log.md` if it exists and is non-empty.
 
-4. Read `regression_log.md` if it exists and is non-empty.
-
-5. Present a status report in the following format:
+4. Present a status report in the following format:
 
 ```
-=== Analysis Status: {analysis_name} ===
+=== Analysis Status ===
 
 Current phase:  {phase number and name}
-Status:         {executing | reviewing | passed | blocked | human_gate | complete}
+Status:         {executing | reviewing | passed | blocked | complete}
 Last updated:   {timestamp from STATE.md}
-Blinding:       {active | approved_for_unblinding}
 
 --- Phase History ---
 
@@ -38,13 +35,12 @@ Blinding:       {active | approved_for_unblinding}
 
 --- Completed Artifacts ---
 
-(For each passed phase, list the path to the final artifact file.
- Check the exec/ directory for each phase and list the latest artifact by timestamp.)
+(For each passed phase, list the path to the final artifact file.)
 
-Phase 1: phase1_strategy/exec/STRATEGY*.md
-Phase 2: phase2_exploration/exec/EXPLORATION*.md
-Phase 3: phase3_selection/exec/SELECTION*.md
-...etc, only for phases that have status=passed
+Phase 1: STRATEGY.md, DATA_SURVEY.md
+Phase 2: SELECTION.md, BACKGROUND.md, INFERENCE.md, analysis.py, results.json
+Phase 3: review/ (arbiter verdict)
+...only for phases that have status=passed
 
 --- Blockers ---
 
@@ -56,7 +52,8 @@ Phase 3: phase3_selection/exec/SELECTION*.md
  Count the number of files in each review/ subdirectory to estimate this.)
 
 Phase 1: {N} iterations (4-bot)
-Phase 3: {N} iterations (1-bot)
+Phase 2: {N} iterations (4-bot)
+Phase 3: {N} iterations (4-bot)
 ...etc
 
 --- Regressions ---
@@ -65,15 +62,7 @@ Phase 3: {N} iterations (1-bot)
  Otherwise: "No regressions recorded.")
 ```
 
-6. If the status is `human_gate`, add a prominent note:
-
-```
->>> HUMAN ACTION REQUIRED <<<
-Phase 4b review has passed. The draft analysis note is ready for human review.
-Run /approve-unblinding to review and approve or reject full unblinding.
-```
-
-7. If the status is `blocked`, add:
+5. If the status is `blocked`, add:
 
 ```
 >>> BLOCKED <<<
@@ -81,9 +70,10 @@ Reason: {blocker description from STATE.md}
 Human intervention is required to proceed.
 ```
 
-8. If the status is `complete`, add:
+6. If the status is `complete`, add:
 
 ```
 >>> ANALYSIS COMPLETE <<<
-Final analysis note: phase5_documentation/exec/ANALYSIS_NOTE*.md
+Final results: results.json
+Analysis script: analysis.py
 ```

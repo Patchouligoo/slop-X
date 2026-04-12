@@ -26,16 +26,15 @@ All reviews — regardless of intensity — use the same classification:
 | Phase | Review type | Rationale |
 |-------|------------|-----------|
 | Phase 1: Strategy | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
-| Phase 2: Execution | **Self-review** during exploration; **4-bot + plot-validator** after inference | Exploration is mostly mechanical. But the fit model, systematics, and final results need full tribunal review. |
-| Phase 3: Review | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | The final product. Worth the full treatment. |
+| Phase 2: Execution | **4-bot + plot-validator** | The fit model, systematics, and final results need full tribunal review. |
+| Phase 3: Final Review | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | The final product reviewed as a complete package. Worth the full treatment. |
 
 **Plot-validator** is spawned alongside all other reviewers (in parallel) for
-every phase that produces figures (all phases except Phase 1 strategy-only).
-The plot-validator runs programmatic checks (not visual inspection) on all
-plotting code and output data. Its findings are passed to the arbiter as
-additional review input. Plot-validator red flags are automatic Category A —
-the arbiter must not downgrade them. See `.claude/agents/plot-validator.md`
-for the complete validation protocol.
+every phase that produces figures. The plot-validator runs programmatic checks
+(not visual inspection) on all plotting code and output data. Its findings are
+passed to the arbiter as additional review input. Plot-validator red flags are
+automatic Category A — the arbiter must not downgrade them. See
+`.claude/agents/plot-validator.md` for the complete validation protocol.
 
 **4-bot review** = physics reviewer + critical reviewer ("bad cop") +
 constructive reviewer ("good cop") + arbiter. The **physics reviewer**
@@ -49,13 +48,8 @@ Reviewers run in parallel (they cannot see each other's work); the arbiter
 reads all reviews (including the plot-validator report) and the original
 artifact, adjudicates disagreements, and issues PASS / ITERATE / ESCALATE.
 
-**1-bot review** = single critical reviewer + plot-validator. Issues
-classified A/B/C. Plot-validator red flags are automatic Category A.
-Executor addresses Category A items and re-submits. No arbiter needed.
-
-**Self-review** = the executing agent explicitly reviews its own work before
-producing the artifact. Plan review and code review happen within the session.
-No separate agent invocation.
+All phases use the same 4-bot review structure. There is no separate
+1-bot or self-review tier.
 
 ### 5.3 Reviewer Framing
 
@@ -108,15 +102,13 @@ the completeness of those documents.
 
 | Phase | Review focus |
 |-------|-------------|
-| Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? |
-| Execution (exploration) | (Self-review) Are samples complete? Any data quality issues? Do distributions look physical? |
-| Execution (selection) | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Cutflow counts monotonically non-increasing (Category A if violated)? **If MVA used:** is data/MC agreement acceptable? Was an alternative architecture tried? |
-| Execution (inference) | Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Do signal injection tests pass? Are post-fit diagnostics clean? Are observed results consistent with expected? |
-| Final results | See §5.4.3 below. |
+| 1: Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? |
+| 2: Execution | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Cutflow counts monotonically non-increasing (Category A if violated)? **If MVA used:** is data/MC agreement acceptable? Was an alternative architecture tried? Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Do signal injection tests pass? Are post-fit diagnostics clean? Are observed results consistent with expected? |
+| 3: Final Review | See §5.4.4 below. |
 
 #### 5.4.1 Completeness Review (Strategy and Inference)
 
-Reviews at Phase 1 (Strategy) and Phase 2 inference must include an
+Reviews at Phase 1 (Strategy) and Phase 2 (Execution) must include an
 explicit **completeness check** in addition to the standard correctness review.
 The completeness check asks what is *missing*, not just whether what is
 *present* is correct.
@@ -131,7 +123,7 @@ The completeness check asks what is *missing*, not just whether what is
   tabulates their systematic programs. If this table is missing, flag as
   Category A.
 
-**At inference (Phase 2.3):**
+**At Phase 2 (Execution) — inference stage:**
 
 The executor must produce a **systematic completeness table** as a
 mandatory section of the inference artifact. This table has two parts:
@@ -171,8 +163,8 @@ external completeness (are we evaluating what the field considers standard?).
 
 #### 5.4.2 Figure and Label Review (all phases producing figures)
 
-Every review that evaluates figures — whether self-review, 1-bot, or multibot —
-must include a mechanical pass over all figures checking the following (see
+Every review that evaluates figures must include a mechanical pass over
+all figures checking the following (see
 Appendix A for the plotting template that prevents most of these). These
 are Category A if wrong:
 
@@ -284,20 +276,17 @@ that do not require visual judgment.
 - NP pull > 3σ for any parameter
 - Fit non-convergence
 
-Red flag findings from the plot-validator are passed directly to the arbiter
-(in 4-bot reviews) or treated as Category A (in 1-bot reviews). The
-arbiter must not downgrade red flags without explicit justification in the
+Red flag findings from the plot-validator are passed directly to the arbiter.
+The arbiter must not downgrade red flags without explicit justification in the
 ARBITER report.
 
 **Integration with review cycle:** The plot-validator runs in parallel with
 other reviewers. Its report (`PLOT_VALIDATION.md`) is read by the arbiter
-alongside the physics, critical, and constructive reviews. In 1-bot reviews,
-the critical reviewer reads the plot-validation report and incorporates its
-findings.
+alongside the physics, critical, and constructive reviews.
 
 #### 5.4.4 Final Results Review (Phase 3)
 
-The Phase 3 review evaluates the final results as a **complete package** —
+The Phase 3 (Final Review) evaluates the results as a **complete package** —
 the reviewer should evaluate them as a journal referee would, not as someone
 who has followed the analysis from Phase 1.
 
@@ -342,11 +331,9 @@ artifact from disk and applies the review criteria.
 
 | Phase | Minimum checks |
 |-------|---------------|
-| 1: Strategy | Conventions consulted? Systematic plan covers standard sources? |
-| 2: Execution (exploration) | Sample inventory complete? Data quality checked? Experiment log updated? |
-| 2: Execution (selection) | Every cut motivated by a plot? Data/MC validation done? Cutflow complete? |
-| 2: Execution (inference) | Systematic completeness table? Signal injection tests pass? Post-fit diagnostics clean? Results consistent with expected? |
-| 3: Final review | `results/` directory populated? `analysis.py` runs and reproduces `results.json`? Figures pass cosmetic checklist (§5.4.2)? |
+| 1: Strategy | Conventions consulted? Systematic plan covers standard sources? Data survey complete? |
+| 2: Execution | Every cut motivated by a plot? Data/MC validation done? Cutflow complete? Systematic completeness table? Signal injection tests pass? Post-fit diagnostics clean? Results consistent with expected? `analysis.py` runs and produces valid `results.json`? |
+| 3: Final Review | Complete package review as journal referee. `analysis.py` reproduces `results.json`? Figures pass cosmetic checklist (§5.4.2)? No dropped systematics? |
 
 **No self-review fallback.** Strategy and final review require independent
 reviewer subagents. Self-review is not an acceptable substitute — the
@@ -355,35 +342,23 @@ failures.
 
 ### 5.5 Iteration and Escalation
 
-For **4-bot reviews:** the cycle repeats until the arbiter issues PASS.
-Correctness is the termination condition. The orchestrator emits warnings
-after 3 iterations and a strong warning after 5 as signals that the issues
-may require human input. A configurable hard cap (default 10) forces
-escalation if reached — this is a safety net, not the intended termination
-condition. The arbiter should ESCALATE rather than loop indefinitely.
-
-For **1-bot reviews:** the executor addresses Category A items and re-submits.
-These typically converge in 1–2 iterations; the orchestrator warns after 2 and
-escalates after 3. Issues surviving 3 rounds of single-reviewer
-feedback likely need a fundamentally different approach, not
-another iteration of the same fix cycle.
-
-For **self-review:** no formal iteration — the agent corrects issues as it
-finds them during execution.
+The review cycle repeats until the arbiter issues PASS. Correctness is the
+termination condition. The orchestrator emits warnings after 3 iterations and
+a strong warning after 5 as signals that the issues may require human input.
+A configurable hard cap (default 10) forces escalation if reached — this is
+a safety net, not the intended termination condition. The arbiter should
+ESCALATE rather than loop indefinitely.
 
 ### 5.6 Cost Controls
 
 To prevent runaway costs from pathological iteration:
 
-**Review iteration warnings:** For **4-bot reviews**, the orchestrator emits a
-warning after **3** iterations and a strong warning after **5**. For **1-bot
-reviews**, the orchestrator warns after **2** and escalates after
-**3** (1-bot issues that survive 3 rounds likely need a different approach).
-These are soft thresholds — correctness remains the
-termination condition. A configurable hard cap (`max_review_iterations`,
-default 10) forces escalation if reached. In interactive mode, the
-orchestrator surfaces warnings for guidance. In batch mode,
-warnings are logged and the arbiter is prompted to consider ESCALATE.
+**Review iteration warnings:** The orchestrator emits a warning after **3**
+iterations and a strong warning after **5**. These are soft thresholds —
+correctness remains the termination condition. A configurable hard cap
+(`max_review_iterations`, default 10) forces escalation if reached. In
+interactive mode, the orchestrator surfaces warnings for guidance. In batch
+mode, warnings are logged and the arbiter is prompted to consider ESCALATE.
 
 ### 5.7 Phase Regression
 

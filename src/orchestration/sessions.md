@@ -92,7 +92,6 @@ analysis_name/
     scripts/
     figures/
     exec/
-      EXPLORATION_margaret_2026-03-14_09-00.md
       SELECTION_david_2026-03-14_10-00.md
       BACKGROUND_eva_2026-03-14_10-00.md
       INFERENCE_frank_2026-03-14_12-00.md

@@ -14,7 +14,6 @@ model: sonnet
 - Experiment log: read experiment_log.md at start, append what you tried and learned
 - No overwrites: create new files alongside previous versions
 - Artifact format: Summary, Method, Results, Validation, Open issues, Code reference
-- Blinding: never access signal region data until explicitly told unblinding is approved
 
 ---
 

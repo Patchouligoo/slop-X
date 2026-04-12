@@ -73,7 +73,7 @@ Scripts should be self-contained and runnable with `python3 script.py`.
 - Scripts should be idempotent — running them twice produces the same output.
   Use deterministic seeds and write outputs to fixed paths.
 - Task names and script names should be human-readable (`fit.py`, not
-  `step4b.py`).
+  `step2c.py`).
 
 **Script decomposition.** If a script's estimated runtime (extrapolated from
 a timing slice) exceeds ~5 minutes, split it into stages with intermediate

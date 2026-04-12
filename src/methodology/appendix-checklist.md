@@ -5,11 +5,12 @@
 | Phase | Artifact file | Must contain |
 |-------|---------------|-------------|
 | 1: Strategy | `STRATEGY.md` | Signal/background enumeration, selection approach, systematics categories |
-| 2: Execution | `EXPLORATION.md` | Sample inventory, data quality assessment, variable ranking, preselection cutflow |
-| 2: Execution | `SELECTION.md` | Selection definition, region definitions, background estimates, closure tests, per-cut distributions |
+| 1: Strategy | `DATA_SURVEY.md` | Sample inventory, data quality assessment, variable ranking, preselection cutflow |
+| 2: Execution | `SELECTION.md` | Selection definition, region definitions, per-cut distributions |
+| 2: Execution | `BACKGROUND.md` | Background estimates, closure tests with uncertainties |
 | 2: Execution | `INFERENCE.md` | Systematic table, fit model, expected + observed results, fit diagnostics |
 | 2: Execution | `analysis.py` + `results.json` | Self-contained script, machine-readable results (JSON) |
-| 3: Review | `review/` | Review artifacts (physics, critical, constructive, plot-validation, arbiter verdict) |
+| 3: Final Review | `review/` | Review artifacts (physics, critical, constructive, plot-validation, arbiter verdict) |
 
 ### Final results completeness checklist
 

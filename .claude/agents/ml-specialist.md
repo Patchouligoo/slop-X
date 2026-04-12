@@ -18,7 +18,6 @@ model: opus
 - Experiment log: read experiment_log.md at start, append what you tried and learned
 - No overwrites: create new files alongside previous versions
 - Artifact format: Summary, Method, Results, Validation, Open issues, Code reference
-- Blinding: never access signal region data until explicitly told unblinding is approved
 - All code runs via `python3 path/to/script.py` using the active conda environment
 - All figures follow `methodology/appendix-plotting.md` template
 
@@ -65,7 +64,7 @@ You are the machine learning and multivariate analysis specialist. You design, t
 ### Rules
 1. **Physics-motivated variables only.** Every input variable must have a clear physics interpretation or be a well-defined detector quantity.
 2. **No truth information.** Never use generator-level variables in the classifier.
-3. **No blinding-violating variables.** If the analysis is blinded in a certain variable, that variable and its close correlates require careful handling.
+3. **No truth-level leakage.** Variables that directly encode generator-level information must not be used as classifier inputs.
 4. **Data/MC agreement required.** Every input variable must show acceptable data/MC agreement in a control region before it is used.
 5. **Remove redundant variables.** If two variables have correlation > 0.95, keep the one with better data/MC modeling.
 6. **Check for time-dependent variables.** Variables with different distributions in different data periods can introduce spurious discrimination.
