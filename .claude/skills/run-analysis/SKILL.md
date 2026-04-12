@@ -21,8 +21,6 @@ This is a simplified pipeline adapted for bump hunt analyses. It uses a 3-phase 
 
 The pipeline produces `results.json` with `{"mu_val": <float>, "mu_err": <float>}`.
 
-No blinding gates, no human approval, no note writing.
-
 ## Step 1: Read Context
 
 1. Read `CLAUDE.md` for task-specific instructions (data files, output format, physics hints).
@@ -67,9 +65,13 @@ Write `experiment_log.md` as empty.
    - Output: `STRATEGY.md`
    - Key deliverables: signal region definition, background estimation method, selection approach, fit method
 3. Spawn `data-explorer` agent in parallel:
-   - Task: Survey the data files (data.h5, cr_data.h5)
+   - Task: Survey the data files
    - Output: `DATA_SURVEY.md`
 4. Wait for both to complete.
+5. Run `/review-phase 1` to review the strategy.
+   - On PASS: proceed to Phase 2
+   - On ITERATE: re-spawn `lead-analyst` with arbiter feedback, loop
+   - On ESCALATE: report failure and stop
 
 ## Step 4: Phase 2 — Execution
 
@@ -80,28 +82,30 @@ Write `experiment_log.md` as empty.
      - Produce diagnostic figures in `figures/`
      - Output: `SELECTION.md`
    - `background-estimator`: Estimate backgrounds, perform closure tests
-     - Use control region data (cr_data.h5) for validation
+     - Use control region data for validation
      - Output: `BACKGROUND.md`
 3. After both complete, spawn `systematics-fitter`:
    - Construct the fit model, estimate mu_val and mu_err
    - Input: STRATEGY.md, SELECTION.md, BACKGROUND.md, data files
    - **CRITICAL**: Must produce `analysis.py` — a self-contained Python script that:
-     - Reads data.h5 and cr_data.h5 from the current directory
+     - Reads input files from the current directory
      - Performs the full analysis (selection, background estimation, fit)
      - Writes `results.json` with `{"mu_val": <float>, "mu_err": <float>}`
    - Run `analysis.py` and verify it produces valid `results.json`
    - If it fails, debug and fix until it works
    - Output: `INFERENCE.md`, `analysis.py`, `results.json`
+4. Run `/review-phase 2` to review the execution artifacts.
+   - On PASS: proceed to Phase 3
+   - On ITERATE: re-spawn `systematics-fitter` with arbiter feedback, loop
+   - On ESCALATE: report failure and stop
 
-## Step 5: Phase 3 — Review
+## Step 5: Phase 3 — Final Review
 
 1. Update STATE.md: status=reviewing
-2. Run 4-bot review by invoking `/review-phase`:
-   - Spawn `physics-reviewer`, `critical-reviewer`, `constructive-reviewer` in parallel
-   - If figures exist, also spawn `plot-validator`
-   - Spawn `arbiter` to synthesize findings
+2. Run `/review-phase 3` for final results review:
+   - Reviews the complete analysis as a journal referee would
    - On PASS: proceed to finalization
-   - On ITERATE: re-spawn `systematics-fitter` with feedback, loop
+   - On ITERATE: re-spawn relevant agent(s) with feedback, loop
    - On ESCALATE: report failure
 
 ## Step 6: Finalize

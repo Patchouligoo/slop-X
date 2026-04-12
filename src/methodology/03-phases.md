@@ -44,16 +44,6 @@ type applies; the agent confirms this during Phase 1.
 - **Search / limit-setting:** Signal vs. background discrimination, signal
   region / control region structure, expected limits or significance as
   the primary deliverable.
-- **Measurement:** Corrected differential or inclusive cross-sections, event
-  shape distributions, or extracted physical parameters (e.g., αs). No
-  signal/background separation per se — the "signal" is the process being
-  measured. The primary deliverable is a corrected spectrum or extracted
-  parameter with full uncertainties.
-
-Where phase descriptions below reference search-specific concepts (signal
-region, control regions, S/B optimization), measurement analyses substitute
-the analogous concepts: fiducial region, sideband/validation regions,
-purity optimization. The review criteria adapt accordingly.
 
 ---
 
@@ -80,39 +70,14 @@ could approve.
   it will be implemented and, if not, why not.
 - Identify which collision data and simulation samples are needed
 
-**For measurement analyses,** the agent must additionally:
-- Define the observable(s) to be measured and their physical interpretation
-- Identify the correction/unfolding strategy and what inputs it requires
-- Survey prior measurements of the same observable
-- Identify what theory predictions or MC generators can be compared to the
-  corrected result
-
 **Output artifact:** `STRATEGY.md` — a document covering the above points.
 Quantitative estimates (cross-sections, expected yields) should cite sources;
 order-of-magnitude estimates are acceptable where precision is unavailable.
 
-**Review:** See Section 5. Strategy review evaluates physics soundness and
-completeness of background enumeration.
+In parallel with strategy development, the `data-explorer` agent surveys
+the available data files and produces `DATA_SURVEY.md`.
 
----
-
-### Phase 2: Execution
-
-**Goal:** Implement the full analysis — explore data, develop selection,
-estimate backgrounds, evaluate systematics, perform the fit, and produce
-final results.
-
-**Inputs:** Strategy, experiment context, data files.
-
-This phase is the core of the analysis. It proceeds through four logical
-stages, each producing its own artifact. The stages are sequential — each
-builds on the previous — but work within a stage should be parallelized.
-
-#### 2.1 Data Exploration
-
-Survey the available data and establish the foundation for event selection.
-
-**The agent must:**
+**The data explorer must:**
 - Inventory available samples: discover file structure, column names,
   number of events, data types
 - Validate data quality: check for pathologies (empty columns, outliers,
@@ -130,16 +95,31 @@ runtime. To avoid wasting time and memory:
 3. **Document the schema.** The discovered structure, event counts, and any
    format quirks are artifact content.
 
-**Output artifact:** `EXPLORATION.md` — sample inventory, data quality
-summary, variable ranking with distributions, preselection cutflow.
+**Output artifacts:** `STRATEGY.md`, `DATA_SURVEY.md`.
 
-#### 2.2 Selection & Background Estimation
+**Review:** See Section 5. Strategy review evaluates physics soundness and
+completeness of background enumeration.
 
-Implement the analysis approach defined in the strategy.
+---
+
+### Phase 2: Execution
+
+**Goal:** Implement the full analysis — develop selection, estimate
+backgrounds, evaluate systematics, perform the fit, and produce final
+results.
+
+**Inputs:** Strategy, data survey, experiment context, data files.
+
+This phase is the core of the analysis. It proceeds through three logical
+stages. The first two (selection and background estimation) run in parallel;
+the third (statistical analysis) follows after both complete.
+
+#### 2.1 Selection
+
+Implement event selection based on the strategy. This runs in parallel with
+background estimation (§2.2).
 
 **The agent must:**
-
-*Selection:*
 - Implement event selection (preselection + final selection or MVA, as
   determined by the strategy and what the data supports)
 - **Default to multivariate techniques** (BDT, neural network) when the
@@ -165,32 +145,12 @@ Implement the analysis approach defined in the strategy.
 - **Every cut must be motivated by a plot.** The artifact must include, for
   each selection cut, the distribution of the cut variable showing signal
   and background.
-
-*Regions (search analyses):*
-- Define control regions enriched in each major background. Document purity
-  and the kinematic relationship to the signal region.
+- Define control regions enriched in each major background (search analyses).
+  Document purity and the kinematic relationship to the signal region.
 - Define validation regions for closure testing. These must be statistically
   independent of both CR and SR.
-
-*Background estimation (search analyses):*
-- Estimate background yields in SR using the chosen method per background
-- Perform closure tests in validation regions: compare predicted yields to
-  observation. Document agreement quantitatively. A closure test passes when
-  agreement is consistent with statistical fluctuations (p-value > 0.05).
-  A test that fails at p < 0.05 is Category A.
-
-*Correction infrastructure (measurement analyses):*
-- Produce data/MC comparisons for **all** kinematic variables entering the
-  observable. Observable-level agreement can mask compensating category-level
-  mismodeling.
-- Construct the response matrix from MC. Report matrix properties: dimensions,
-  diagonal fraction, condition number, efficiency.
-- Implement the correction/unfolding chain end-to-end on MC. Run closure
-  tests: unfold MC truth through the response and verify recovery. Run stress
-  tests with reweighted truth.
-- Closure test failure (chi2 p-value < 0.05) is Category A.
-- **Binning must be justified.** Every binning choice must be motivated by
-  detector resolution, statistical precision, or physics features.
+- Write analysis scripts to `scripts/` and produce diagnostic figures in
+  `figures/`
 
 **Sensitivity optimization.** If the expected sensitivity after the initial
 selection is insufficient, the agent must systematically explore alternative
@@ -220,13 +180,28 @@ The agent should stop optimizing when:
 3. **Inspect & validate.** Systematically review all produced plots.
 
 **Output artifact:** `SELECTION.md` — selection definition, cutflow, MVA
-details if applicable, region definitions, background estimates with
+details if applicable, region definitions.
+
+#### 2.2 Background Estimation
+
+Estimate backgrounds and validate with closure tests. This runs in parallel
+with selection (§2.1), using control region data for validation.
+
+**The agent must:**
+- Estimate background yields in SR using the chosen method per background
+- Perform closure tests in validation regions: compare predicted yields to
+  observation. Document agreement quantitatively. A closure test passes when
+  agreement is consistent with statistical fluctuations (p-value > 0.05).
+  A test that fails at p < 0.05 is Category A.
+
+**Output artifact:** `BACKGROUND.md` — background estimates with
 uncertainties, closure test results.
 
-#### 2.3 Statistical Analysis
+#### 2.3 Statistical Analysis & Final Results
 
-Evaluate systematic uncertainties, construct the statistical model, and
-compute expected results.
+Evaluate systematic uncertainties, construct the statistical model, produce
+results, and generate the self-contained analysis script. This stage runs
+after both selection and background estimation are complete.
 
 **The agent must:**
 
@@ -251,30 +226,8 @@ compute expected results.
 - chi2/ndf ~ 1 is good; >>1 indicates mismodeling; <<1 indicates
   overestimated uncertainties
 
-*Expected results:*
-- Compute expected results (limits, significance, or measurement precision)
-- Produce fit diagnostics
-
-**For measurements:** "Expected results" means the result extracted from
-MC pseudo-data — not from real data.
-
-**For measurement analyses:** the artifact must additionally include:
-- The full bin-to-bin covariance matrix (statistical + each systematic source
-  separately + total) as machine-readable files
-- Comparison of the corrected result to at least one theory prediction or MC
-  generator. Compute a chi2 or p-value using the full covariance matrix.
-
-**Output artifact:** `INFERENCE.md` — systematic uncertainty table with
-impacts, statistical model description, expected results, fit diagnostics.
-
-#### 2.4 Validation & Final Results
-
-Reality-check the analysis with data and produce final results.
-
-**The agent must:**
-- Optionally select 10% of data using a fixed random seed for an initial
-  validation pass (recommended for large datasets)
-- Run the full analysis chain on the complete dataset
+*Results:*
+- Compute results (limits, significance, or measurement precision)
 - Produce post-fit diagnostics: nuisance parameter pulls, impact ranking,
   correlation matrix, goodness-of-fit
 - Compare observed results to expected results. Report consistency
@@ -282,11 +235,15 @@ Reality-check the analysis with data and produce final results.
 - If results show anomalies (large NP pulls, poor GoF, unexpected signal),
   investigate and document whether these indicate a modeling problem or a
   genuine feature of the data
-- **Produce `analysis.py`** — a self-contained Python script that performs
-  the full analysis and writes `results.json`
+- **Produce `analysis.py`** — a self-contained Python script that reads
+  data files from the current directory, performs the full analysis
+  (selection, background estimation, fit), and writes `results.json` with
+  `{"mu_val": <float>, "mu_err": <float>}`
+- Run `analysis.py` and verify it produces valid `results.json`
 - **Produce `results.json`** with the final physics results
 
-**Output artifacts:** Updated `INFERENCE.md` with observed results,
+**Output artifacts:** `INFERENCE.md` — systematic uncertainty table with
+impacts, statistical model description, results, fit diagnostics.
 `analysis.py`, `results.json`.
 
 ---

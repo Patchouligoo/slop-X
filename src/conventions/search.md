@@ -12,9 +12,6 @@ on a signal cross-section, coupling, or branching ratio, or a significance
 bump hunts, cut-and-count searches, and shape-based searches using a
 discriminant distribution.
 
-If the primary result is a corrected spectrum or extracted physical
-parameter, use `unfolding.md` or `extraction.md` instead.
-
 ---
 
 ## Standard configuration
@@ -32,11 +29,6 @@ parameter, use `unfolding.md` or `extraction.md` instead.
   the unconstrained (two-sided) profile likelihood ratio.
 - **Signal injection.** Inject signal at 0x, 1x, 2x, and 5x the expected
   cross-section. See Required validation check #2 for pass/fail criteria.
-- **Blinding.** The signal region discriminant distribution in data is not
-  examined until Phase 2.4 (validation and final results). See
-  `methodology/03-phases.md` for the phase definitions. When blinding is
-  not applicable (e.g., pseudo-data or simulation studies), the analysis
-  prompt should state this explicitly.
 
 ---
 
@@ -44,44 +36,6 @@ parameter, use `unfolding.md` or `extraction.md` instead.
 
 The sources below are organized by collider type. Use the section that
 matches your analysis environment.
-
-### For e+e- collider searches
-
-#### Signal modeling (e+e-)
-
-| Source | What to vary | Rationale |
-|--------|-------------|-----------|
-| Signal cross-section theory uncertainty | Scale variations (muR, muF), higher-order corrections | Affects the interpretation of the limit in terms of a physical parameter |
-| Signal acceptance | Generator comparison, ISR variations | Different generators predict different acceptance at the same √s |
-| Signal shape | Alternative signal MC or parameter variations (mass, width, coupling) | The discriminant shape determines how the signal distributes across bins |
-| ISR modeling | Vary ISR treatment or compare generators with different ISR implementations | ISR shifts effective √s, affecting signal kinematics and acceptance — dominant beam-related systematic at LEP2 |
-
-#### Background estimation (e+e-)
-
-| Source | What to vary | Rationale |
-|--------|-------------|-----------|
-| 4-fermion backgrounds | Compare generators (e.g., KORALW, grc4f, EXCALIBUR) for WW/ZZ/Weν | Irreducible 4-fermion processes are the dominant background for many LEP2 searches; generator differences are significant |
-| Background normalization | Vary normalization within CR-constrained or theory uncertainty | Transfer factor or theory cross-section uncertainty propagates to the SR prediction |
-| Background shape | Alternative functional forms or MC generators | Mismodeled shape in the discriminant biases the limit |
-| qq̄(γ) modeling | Compare generators (Pythia, Herwig, KK2f) for 2-fermion backgrounds | Fragmentation and hadronization differences affect jet multiplicity and event shapes |
-| MC statistics | Barlow-Beeston (one NP per bin to absorb MC statistical uncertainty) or equivalent bin-by-bin MC stat terms | Finite MC sample size adds uncertainty to template shapes |
-
-#### Detector and reconstruction (e+e-)
-
-| Source | What to vary | Rationale |
-|--------|-------------|-----------|
-| Detector simulation model | Compare data and MC for key observables; propagate data/MC differences | Detector response modeling (tracking efficiency, calorimeter resolution) directly affects acceptance and shape |
-| Object calibration | Energy scale, resolution, efficiency scale factors for each object type | Affect both signal acceptance and background shape |
-| Beam energy | Vary within the LEP energy calibration uncertainty | Affects reconstructed mass, cross-section normalization, and kinematic endpoint positions |
-| Luminosity | Vary within the small-angle Bhabha counting uncertainty | Normalizes all simulation-based predictions |
-
-#### Theory inputs (e+e-)
-
-| Source | What to vary | Rationale |
-|--------|-------------|-----------|
-| QCD scale variations | Independent muR, muF variation | Probes missing higher-order terms in signal and background cross-sections |
-| Fragmentation model | Alternative generators (string vs. cluster hadronization) | Affects jet properties, b-tagging performance, and event shape distributions |
-| Heavy flavour treatment | Vary b-quark mass, fragmentation function | Relevant when the search involves b-tagged final states |
 
 ### For pp collider searches
 
@@ -105,25 +59,6 @@ matches your analysis environment.
 | Multi-jet QCD modeling | Compare generators (Pythia, Herwig, Sherpa) or data-driven methods | QCD multi-jet production is a dominant background in many hadronic searches; generator differences in jet multiplicity and kinematics are significant |
 | MC statistics | Barlow-Beeston (one NP per bin) or equivalent bin-by-bin MC stat terms | Finite MC sample size adds uncertainty to template shapes |
 
-#### Detector and reconstruction (pp)
-
-| Source | What to vary | Rationale |
-|--------|-------------|-----------|
-| Jet energy scale (JES) | Vary within calibration uncertainty (multiple components: absolute, relative, flavor, pileup) | Shifts reconstructed jet pT and mass, affecting signal acceptance and background shape — often the leading experimental systematic for jet-based searches |
-| Jet energy resolution (JER) | Smear jet energies within resolution uncertainty | Broadens mass peaks and modifies kinematic distributions |
-| Jet mass scale and resolution | Vary large-R jet mass calibration and resolution | Critical for searches using jet substructure or boosted topologies |
-| Pileup | Vary the pileup reweighting within the inelastic cross-section uncertainty | Affects jet multiplicity, isolation, and missing ET |
-| Luminosity | Vary within the luminosity calibration uncertainty | Normalizes all simulation-based predictions; typically 1-2% at the LHC |
-| Object calibration | Energy scale, resolution, efficiency scale factors for each object type (electrons, muons, b-tags, etc.) | Affect both signal acceptance and background shape |
-
-#### Theory inputs (pp)
-
-| Source | What to vary | Rationale |
-|--------|-------------|-----------|
-| QCD scale variations | Independent muR, muF variation (7-point or envelope) | Probes missing higher-order terms in signal and background cross-sections |
-| Parton shower and matching | Compare generators (Pythia vs Herwig) or vary matching scales | Affects jet properties, event topology, and acceptance |
-| Fragmentation model | String vs. cluster hadronization | Affects jet substructure variables, b-tagging performance, and event shape distributions |
-| Heavy flavour treatment | Vary b-quark mass, fragmentation function | Relevant when the search involves b-tagged final states |
 
 ---
 
