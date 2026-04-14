@@ -31,6 +31,7 @@ You are the background estimation specialist. For each background process, you d
 4. Read the detector specialist output for object performance relevant to background composition.
 5. Read the theory scout output for background cross-sections and generator details.
 6. **Read the applicable `conventions/` file** for this analysis type to understand the required background systematic prescriptions. Use this as a checklist to verify that all convention-mandated background uncertainties are evaluated.
+7. **Read `methodology/06-tools.md`** for preferred tools and fitting paradigms. Follow the tool preferences specified there (e.g., ROOT/RooFit over scipy for fitting).
 
 ## Environment
 

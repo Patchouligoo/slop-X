@@ -45,6 +45,7 @@ violation and will be flagged as Category A by reviewers.
 5. Read the detector specialist output for experimental systematic prescriptions.
 6. Read the theory scout output for theoretical systematic prescriptions.
 7. **Read the applicable `conventions/` file** for this analysis type. Use this as the authoritative checklist for systematic completeness: every source required by conventions must appear in the likelihood model or be explicitly documented as "Not applicable because [reason]."
+8. **Read `methodology/06-tools.md`** for preferred tools and fitting paradigms. Follow the tool preferences specified there (e.g., ROOT/RooFit over scipy for likelihood fits).
 
 ## Environment
 
@@ -116,7 +117,7 @@ Every "No" must have an explicit justification. This table is a required section
 - For shape fit: product of Poisson likelihoods over bins with shape morphing
 
 ### Implementation
-- Use a standard statistical framework (pyhf, HistFactory, RooStats, combine, or equivalent)
+- Use ROOT's RooFit/RooStats for likelihood fits (see `methodology/06-tools.md` for preferred tools and patterns)
 - Implement all systematic variations as interpolation/extrapolation of templates
 - Include MC statistical uncertainties (Barlow-Beeston / gamma parameters)
 - Validate the likelihood by checking that it reproduces expected yields at nominal

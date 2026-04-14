@@ -34,6 +34,7 @@ The pipeline produces `results.json` with observed `{"mu_val": <float>, "mu_err"
 3. If `methodology/` exists, read:
    - `methodology/03-phases.md` — phase requirements and deliverables
    - `methodology/05-review.md` — review tiers and iteration rules
+   - `methodology/06-tools.md` — preferred tools, fitting paradigms, and scale-out rules
 4. If `orchestration/` exists (via symlink or in the `.claude/` parent), read:
    - `orchestration/agents.md` — agent role definitions and model tiers
    - `orchestration/automation.md` — automation pseudocode and review loop logic
