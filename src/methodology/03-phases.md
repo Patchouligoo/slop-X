@@ -288,8 +288,7 @@ impacts, statistical model description, expected results, fit diagnostics.
 **Inputs:** All Phase 2 artifacts, `analysis.py`, `results.json`.
 
 The orchestrator spawns the review protocol defined in Section 5:
-- `physics-reviewer`, `critical-reviewer`, `constructive-reviewer` in parallel
-- If figures exist, also spawn `plot-validator`
+- `analysis-reviewer` (and `plot-validator` if figures exist) in parallel
 - `arbiter` synthesizes findings into a verdict
 
 **Review outcomes:**

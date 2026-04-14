@@ -17,7 +17,7 @@ strength.
  ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌─────────────┐   ┌──────────┐
  │ Phase 1  │──▶│   Phase 2    │──▶│ Phase 3  │──▶│   Phase 4   │──▶│ Phase 5  │
  │ Strategy │   │  Execution   │   │  Review  │   │ Unblinding  │   │ Summary  │
- │ (4-bot)  │   │  (4-bot)     │   │ (4-bot)  │   │  (4-bot)    │   │ (4-bot)  │
+ │ (review) │   │(+plot-valid) │   │(+plot-v) │   │ (+plot-v)   │   │ (review) │
  └──────────┘   └──────────────┘   └──────────┘   └─────────────┘   └──────────┘
        ◄──── BLINDED (SR data forbidden) ────►
 ```
@@ -26,11 +26,11 @@ strength.
 
 | Phase | Executors | Review | Key deliverables |
 |-------|-----------|--------|------------------|
-| **1. Strategy** | `lead-analyst` + `data-explorer` | 4-bot | `STRATEGY.md`, `DATA_SURVEY.md` |
-| **2. Execution** | `signal-lead` + `background-estimator` → `systematics-fitter` | 4-bot | `SELECTION.md`, `BACKGROUND.md`, `INFERENCE.md`, `analysis.py`, `results.json` |
-| **3. Review** | *(none — review only)* | 4-bot | PASS / ITERATE / ESCALATE |
-| **4. Unblinding** | `unblinding-analyst` | 4-bot | `UNBLINDING.md`, updated `results.json` |
-| **5. Summary** | `summary-writer` | 4-bot | `SUMMARY.md`, updated `STRATEGY.md` |
+| **1. Strategy** | `lead-analyst` + `data-explorer` | analysis-reviewer → arbiter | `STRATEGY.md`, `DATA_SURVEY.md` |
+| **2. Execution** | `signal-lead` + `background-estimator` → `systematics-fitter` | analysis-reviewer + plot-validator → arbiter | `SELECTION.md`, `BACKGROUND.md`, `INFERENCE.md`, `analysis.py`, `results.json` |
+| **3. Review** | *(none — review only)* | analysis-reviewer + plot-validator → arbiter | PASS / ITERATE / ESCALATE |
+| **4. Unblinding** | `unblinding-analyst` | analysis-reviewer + plot-validator → arbiter | `UNBLINDING.md`, updated `results.json` |
+| **5. Summary** | `summary-writer` | analysis-reviewer → arbiter | `SUMMARY.md`, updated `STRATEGY.md` |
 
 Phases 1–3 are **blinded** — agents must not access Signal Region events from
 the measurement data. Blinding is lifted in Phase 4.
@@ -40,10 +40,10 @@ Phase 2 runs in substages: data exploration, selection & background estimation
 
 ### Review cycle
 
-Each review runs four reviewers in parallel, then an arbiter:
+Each review runs one or two reviewers, then an arbiter:
 
 ```
-physics-reviewer + critical-reviewer + constructive-reviewer + plot-validator
+analysis-reviewer [+ plot-validator (Phases 2-4)]
                               │
                               ▼
                            arbiter
@@ -70,9 +70,7 @@ Warn at iteration 3, hard cap at 10.
 | `signal-lead` | opus | Event selection implementation |
 | `background-estimator` | opus | Background estimation and closure tests |
 | `systematics-fitter` | opus | Fit model, systematics, `analysis.py` + `results.json` |
-| `physics-reviewer` | sonnet | Physics correctness review |
-| `critical-reviewer` | sonnet | Methodology and completeness review |
-| `constructive-reviewer` | sonnet | Improvement suggestions |
+| `analysis-reviewer` | opus | Physics correctness, code correctness, conventions compliance |
 | `plot-validator` | sonnet | Programmatic figure validation |
 | `arbiter` | opus | Synthesizes reviews, issues verdict |
 | `unblinding-analyst` | opus | Unblinded fit, observed results |

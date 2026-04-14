@@ -75,14 +75,8 @@ analysis_name/
       STRATEGY_gerald_2026-03-13_14-30.md
       DATA_SURVEY_alice_2026-03-13_14-45.md
     review/
-      physics/
-        STRATEGY_PHYSICS_REVIEW_florence_2026-03-13_15-00.md
-      critical/
-        STRATEGY_CRITICAL_REVIEW_bob_2026-03-13_15-00.md
-      constructive/
-        STRATEGY_CONSTRUCTIVE_REVIEW_tomoko_2026-03-13_15-00.md
-      plot-validation/
-        STRATEGY_PLOT_VALIDATION_carol_2026-03-13_15-00.md
+      analysis/
+        STRATEGY_ANALYSIS_REVIEW_florence_2026-03-13_15-00.md
       arbiter/
         STRATEGY_ARBITER_hiroshi_2026-03-13_15-30.md
 
@@ -96,16 +90,12 @@ analysis_name/
       BACKGROUND_eva_2026-03-14_10-00.md
       INFERENCE_frank_2026-03-14_12-00.md
     review/
-      physics/
-      critical/
-      constructive/
+      analysis/
       plot-validation/
       arbiter/
 
   review/                              # Phase 3: top-level review directory
-    physics/
-    critical/
-    constructive/
+    analysis/
     plot-validation/
     arbiter/
 
@@ -116,9 +106,7 @@ analysis_name/
     exec/
       UNBLINDING_name_timestamp.md
     review/
-      physics/
-      critical/
-      constructive/
+      analysis/
       plot-validation/
       arbiter/
 
@@ -127,10 +115,7 @@ analysis_name/
     exec/
       SUMMARY_name_timestamp.md
     review/
-      physics/
-      critical/
-      constructive/
-      plot-validation/
+      analysis/
       arbiter/
 
   analysis.py                          # Final deliverable (from Phase 2)

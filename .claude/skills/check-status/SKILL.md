@@ -53,11 +53,11 @@ Phase 5: SUMMARY.md, STRATEGY.md (updated with Phase 4/5 results)
 (For each phase that has been reviewed, report the number of review iterations.
  Count the number of files in each review/ subdirectory to estimate this.)
 
-Phase 1: {N} iterations (4-bot)
-Phase 2: {N} iterations (4-bot)
-Phase 3: {N} iterations (4-bot)
-Phase 4: {N} iterations (4-bot)
-Phase 5: {N} iterations (4-bot)
+Phase 1: {N} iterations
+Phase 2: {N} iterations
+Phase 3: {N} iterations
+Phase 4: {N} iterations
+Phase 5: {N} iterations
 ...etc
 
 --- Regressions ---

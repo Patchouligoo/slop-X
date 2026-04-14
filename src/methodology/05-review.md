@@ -21,47 +21,41 @@ All reviews — regardless of intensity — use the same classification:
   it. Tracked and resolved before the analysis is finalized.
 - **(C) Suggestions:** Style, clarity, or minor improvements.
 
-### 5.2 Tiered Review Structure
+### 5.2 Review Structure
 
-| Phase | Review type | Rationale |
-|-------|------------|-----------|
-| Phase 1: Strategy | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
-| Phase 2: Execution | **4-bot + plot-validator** | The fit model, systematics, and final results need full tribunal review. |
-| Phase 3: Final Review | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | The final product reviewed as a complete package. Worth the full treatment. |
-| Phase 4: Unblinding | **4-bot + plot-validator** | First look at real SR data — observed results need full tribunal review. |
-| Phase 5: Summary | **4-bot + plot-validator** | Final documentation quality check. Ensures complete and accurate record. |
+| Phase | Reviewers | Rationale |
+|-------|-----------|-----------|
+| Phase 1: Strategy | `analysis-reviewer` → `arbiter` | Strategy rarely produces figures; physics and conventions review is sufficient. |
+| Phase 2: Execution | `analysis-reviewer` + `plot-validator` → `arbiter` | Code, fit results, and diagnostic plots all need review. |
+| Phase 3: Final Review | `analysis-reviewer` + `plot-validator` → `arbiter` | Complete package review — figures are re-examined alongside the analysis. |
+| Phase 4: Unblinding | `analysis-reviewer` + `plot-validator` → `arbiter` | First look at real SR data — new diagnostic plots need programmatic validation. |
+| Phase 5: Summary | `analysis-reviewer` → `arbiter` | Documentation completeness and internal consistency only — no new figures. |
 
-**Plot-validator** is spawned alongside all other reviewers (in parallel) for
-every phase that produces figures. The plot-validator runs programmatic checks
-(not visual inspection) on all plotting code and output data. Its findings are
-passed to the arbiter as additional review input. Plot-validator red flags are
-automatic Category A — the arbiter must not downgrade them. See
-`.claude/agents/plot-validator.md` for the complete validation protocol.
+**Plot-validator** is spawned alongside the analysis-reviewer (in parallel) for
+phases that produce figures (Phases 2, 3, 4). The plot-validator runs
+programmatic checks (not visual inspection) on all plotting code and output
+data. Its findings are passed to the arbiter as additional review input.
+Plot-validator red flags are automatic Category A — the arbiter must not
+downgrade them. See `.claude/agents/plot-validator.md` for the complete
+validation protocol.
 
-**4-bot review** = physics reviewer + critical reviewer ("bad cop") +
-constructive reviewer ("good cop") + arbiter. The **physics reviewer**
-receives ONLY the physics prompt and the artifact — no methodology, no
-conventions. It reviews as a senior collaboration member would: "Is this
-physics correct? Is it complete? Would I approve this?"
-The critical reviewer's goal is to find flaws — both in what is present
-and in what is absent. The constructive reviewer's goal is to strengthen
-the analysis — clarity, additional validation, improved presentation.
-Reviewers run in parallel (they cannot see each other's work); the arbiter
-reads all reviews (including the plot-validator report) and the original
-artifact, adjudicates disagreements, and issues PASS / ITERATE / ESCALATE.
-
-All phases use the same 4-bot review structure. There is no separate
-1-bot or self-review tier.
+**Review flow:** The `analysis-reviewer` evaluates physics correctness, code
+correctness, conventions compliance, and completeness. It receives the
+methodology spec, conventions, and the artifact — combining the perspectives
+of physics judgment and rigorous methodology auditing. When a plot-validator
+is present, both run in parallel (they cannot see each other's work); the
+arbiter reads all reviews and the original artifact, adjudicates
+disagreements, and issues PASS / ITERATE / ESCALATE.
 
 ### 5.3 Reviewer Framing
 
-The critical reviewer's job is not to check whether the artifact meets its
+The analysis reviewer's job is not to check whether the artifact meets its
 own stated criteria. It is to evaluate whether the artifact would survive
-**external scrutiny** — a journal referee, a collaboration review committee,
-or a competing group doing the same measurement independently.
+**external scrutiny** — a collaboration review committee or a competing
+group doing the same measurement independently.
 
 The key question is not "does this pass its tests?" but "what would a
-knowledgeable referee ask for that isn't here?" This requires the reviewer
+knowledgeable reviewer ask for that isn't here?" This requires the reviewer
 to bring external standards to the evaluation:
 
 - **Conventions:** What does the applicable `conventions/` document require
@@ -286,7 +280,7 @@ ARBITER report.
 
 **Integration with review cycle:** The plot-validator runs in parallel with
 other reviewers. Its report (`PLOT_VALIDATION.md`) is read by the arbiter
-alongside the physics, critical, and constructive reviews.
+alongside the analysis review.
 
 #### 5.4.4 Final Results Review (Phase 3)
 
@@ -367,8 +361,10 @@ accurate, and internally consistent account of the analysis?"
 ### 5.4.7 Single-Session Review via Subagents
 
 When the analysis runs in a single session, reviews are implemented by
-spawning dedicated reviewer subagents. The reviewer subagent reads the phase
-artifact from disk and applies the review criteria.
+spawning dedicated reviewer subagents. The `analysis-reviewer` subagent
+reads the phase artifact from disk and applies the review criteria. For
+phases with figures (2, 3, 4), the `plot-validator` runs in parallel. The
+`arbiter` reads all review outputs and issues the verdict.
 
 **Minimum review checklist (all phases):**
 
@@ -376,14 +372,13 @@ artifact from disk and applies the review criteria.
 |-------|---------------|
 | 1: Strategy | Conventions consulted? Systematic plan covers standard sources? Data survey complete? Blinding protocol followed (no SR measurement data examined)? |
 | 2: Execution | Every cut motivated by a plot? Data/MC validation done? Cutflow complete? Systematic completeness table? Signal injection tests pass? Post-fit diagnostics clean? Expected results physically sensible? `analysis.py` runs and produces valid `results.json`? Blinding protocol followed (SR uses Asimov only)? |
-| 3: Final Review | Complete package review as journal referee. `analysis.py` reproduces `results.json`? Figures pass cosmetic checklist (§5.4.2)? No dropped systematics? Blinding protocol followed across all phases? |
+| 3: Final Review | Complete package review as journal referee. `analysis.py` reproduces `results.json`? No dropped systematics? Blinding protocol followed across all phases? |
 | 4: Unblinding | Observed vs expected comparison quantitative (< 2σ or investigated)? NP pulls < 2σ? GoF p-value acceptable? Anomalies investigated? Updated `results.json` contains observed values? |
 | 5: Summary | Complete analysis chain documented? STRATEGY.md updated with Phase 4/5 results? Summary internally consistent with all source artifacts? |
 
-**No self-review fallback.** Strategy and final review require independent
-reviewer subagents. Self-review is not an acceptable substitute — the
-author reviewing their own work misses both correctness and completeness
-failures.
+**No self-review fallback.** Reviews require independent reviewer subagents.
+Self-review is not an acceptable substitute — the author reviewing their
+own work misses both correctness and completeness failures.
 
 ### 5.5 Iteration and Escalation
 

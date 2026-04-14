@@ -8,7 +8,7 @@
 
 Use the `/run-analysis` skill to execute the analysis pipeline. The skill
 spawns specialist agents (lead-analyst, data-explorer, signal-lead,
-background-estimator, systematics-fitter, critical-reviewer, etc.) to plan,
+background-estimator, systematics-fitter, analysis-reviewer, etc.) to plan,
 implement, and review the analysis.
 
 The agents and skills are defined in `.claude/agents/` and `.claude/skills/`.
@@ -125,13 +125,13 @@ next step, no re-review.
 
 The arbiter must not PASS with unresolved A or B items.
 
-**Plot-validator** runs alongside all other reviewers in parallel. It performs
-programmatic (not visual) checks on plotting code and output data. Red flags
-from the plot-validator are automatic Category A — the arbiter must not
-downgrade them. See `.claude/agents/plot-validator.md` for the protocol.
+**Review composition varies by phase:** Phases 2-4 (which produce figures)
+include the `plot-validator` alongside the `analysis-reviewer`. Phases 1 and
+5 use `analysis-reviewer` only. All phases use the `arbiter` for the final
+verdict. Red flags from the plot-validator are automatic Category A — the
+arbiter must not downgrade them.
 
 **Iteration limits:** Warn at 3, strong warn at 5, hard cap at 10.
-All subagents use `model: "opus"`.
 
 ---
 

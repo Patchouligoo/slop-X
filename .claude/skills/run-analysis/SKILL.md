@@ -46,11 +46,9 @@ Create the working directory structure:
 scripts/          # Analysis scripts
 figures/          # Diagnostic plots
 review/           # Review outputs
-  critical/
-  physics/
-  constructive/
-  arbiter/
+  analysis/
   plot-validation/
+  arbiter/
 ```
 
 Write `STATE.md`:

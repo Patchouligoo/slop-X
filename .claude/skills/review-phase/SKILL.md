@@ -1,30 +1,31 @@
 ---
 name: review-phase
-description: Run the review cycle for a completed phase artifact with plot validation
+description: Run the review cycle for a completed phase artifact
 user-invocable: true
 ---
 
 # /review-phase -- Run Review Cycle for a Phase
 
-Run the review cycle for a completed phase artifact. All phases use 4-bot review (physics + critical + constructive, then arbiter) with plot-validator included for phases that produce figures.
+Run the review cycle for a completed phase artifact. The reviewer composition
+varies by phase: phases that produce figures include the plot-validator.
 
 **Arguments:** `$ARGUMENTS`
 
 The argument is optionally a phase identifier: `1`, `2`, `3`, `4`, or `5`. If omitted, read STATE.md to determine the current phase.
 
-## Step 1: Determine Phase and Review Tier
+## Step 1: Determine Phase and Reviewer Composition
 
 1. Read `STATE.md` to confirm the analysis state.
 2. If a phase argument was given, use it. Otherwise use the current phase from STATE.md.
-3. Determine the review tier for this phase:
+3. Determine the reviewer composition for this phase:
 
-| Phase | Review tier | Plot-validator |
-|-------|------------|----------------|
-| 1 (Strategy) | 4-bot (physics + critical + constructive, then arbiter) | Yes (if figures produced) |
-| 2 (Execution) | 4-bot | Yes |
-| 3 (Final Review) | 4-bot | Yes |
-| 4 (Unblinding) | 4-bot | Yes |
-| 5 (Summary) | 4-bot | Yes (if figures produced) |
+| Phase | Reviewers | Plot-validator |
+|-------|-----------|----------------|
+| 1 (Strategy) | analysis-reviewer → arbiter | No |
+| 2 (Execution) | analysis-reviewer + plot-validator → arbiter | Yes |
+| 3 (Final Review) | analysis-reviewer + plot-validator → arbiter | Yes |
+| 4 (Unblinding) | analysis-reviewer + plot-validator → arbiter | Yes |
+| 5 (Summary) | analysis-reviewer → arbiter | No |
 
 ## Step 2: Locate the Artifact Under Review
 
@@ -40,7 +41,7 @@ Find the latest artifact for this phase:
 
 Read the experiment log for this phase if it exists.
 
-Identify all figures in the `figures/` directory -- these will be passed to the plot-validator.
+Identify all figures in the `figures/` directory -- these will be passed to the plot-validator (Phases 2-4).
 
 ## Step 3: Run the Review
 
@@ -53,12 +54,12 @@ Initialize iteration counter: `iteration = 0`.
 Before spawning reviewers, note the focus area for the current phase:
 
 - **Phase 1 (Strategy)**: Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? Are 2-3 published reference analyses identified? **Blinding compliance:** verify no SR events from measurement data were examined. Any violation is Category A.
-- **Phase 2 (Execution)**: Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Does the systematic completeness table account for all planned sources? Do signal injection tests pass? Are post-fit diagnostics clean? Are expected results physically sensible? **Blinding compliance:** verify all SR results use Asimov data only — no SR events from measurement data were examined. Any violation is Category A.
+- **Phase 2 (Execution)**: Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Does the systematic completeness table account for all planned sources? Do signal injection tests pass? Are post-fit diagnostics clean? Are expected results physically sensible? Does `analysis.py` run and produce valid `results.json`? **Blinding compliance:** verify all SR results use Asimov data only — no SR events from measurement data were examined. Any violation is Category A.
 - **Phase 3 (Final Review)**: Review the complete analysis as a journal referee would. Check for: systematic sources planned in Phase 1 but dropped without justification, validation evidence that exists but was not included, logical gaps where claims lack supporting evidence, quantitative results that are inconsistent between tables. Does the result contain enough information for an independent analyst to reproduce the measurement? **Blinding compliance:** verify no SR events from measurement data were examined in any phase. Any violation is Category A.
 - **Phase 4 (Unblinding)**: Are observed results consistent with expected (within 2σ or investigated)? Are NP pulls reasonable (< 2σ)? Is GoF acceptable (p-value > 0.05)? Are anomalies properly investigated and documented? Is the updated `results.json` valid and contains observed values? Was `analysis.py` run without unauthorized modifications?
 - **Phase 5 (Summary)**: Is the summary complete and accurate? Does STRATEGY.md contain Phase 4 and Phase 5 results (appended sections)? Are all numbers internally consistent with source artifacts? Is the full analysis chain documented?
 
-### 4-bot Review (All Phases)
+### Review Loop
 
 Loop until PASS, ESCALATE, or max iterations:
 
@@ -68,38 +69,31 @@ Loop until PASS, ESCALATE, or max iterations:
    - If `iteration > 5`: log STRONG WARNING.
    - If `iteration >= 10`: force ESCALATE to human. Update STATE.md: `status: blocked`. Report and stop.
 
-3. **Spawn physics-reviewer, critical-reviewer, and constructive-reviewer in parallel** via SendMessage. If this phase has figures, also spawn **plot-validator** in parallel with the three reviewers:
+3. **Spawn reviewers based on phase composition:**
 
-   Physics reviewer instructions:
+   **For Phases 2, 3, 4** (with plot-validator): Spawn `analysis-reviewer` and `plot-validator` **in parallel** via SendMessage.
+
+   **For Phases 1, 5** (without plot-validator): Spawn `analysis-reviewer` only via SendMessage.
+
+   Analysis reviewer instructions:
    - Read: the artifact under review, upstream artifacts, experiment log
-   - Evaluate physics correctness: signal model assumptions, background treatment, kinematic reasoning, systematic uncertainty coverage, statistical methodology
+   - Read: methodology spec (review focus for this phase), applicable conventions
+   - Evaluate physics correctness, code correctness, conventions compliance, and completeness
    - Apply the phase-specific review focus listed above
    - Classify every issue as (A) must resolve, (B) should address, (C) suggestion
-   - Write output to: `review/physics/{REVIEW}.md` with session-named filename
+   - Write output to: `review/analysis/{REVIEW}.md` with session-named filename
 
-   Critical reviewer instructions:
-   - Read: methodology spec (review focus for this phase), the artifact under review, upstream artifacts, experiment log
-   - Find flaws: incomplete estimates, missing systematics, unjustified assumptions, biases, physics errors, code bugs
-   - Apply the phase-specific review focus listed above
-   - Classify every issue as (A) must resolve, (B) should address, (C) suggestion
-   - Write output to: `review/critical/` with session-named filename
-
-   Constructive reviewer instructions:
-   - Read: same inputs as critical reviewer
-   - Strengthen the analysis: clarity, additional validation, presentation improvements
-   - Focus on B and C issues but escalate to A if genuine errors found
-   - Write output to: `review/constructive/` with session-named filename
-
-   Plot-validator instructions (if figures exist):
+   Plot-validator instructions (Phases 2-4 only):
    - Read: all figures in the `figures/` directory
    - Read: `conventions/` plotting standards (axis labels, font sizes, color schemes, legend placement, ratio panels, style requirements)
    - Validate each figure against the conventions
    - Check: axis labels and units, legend completeness, ratio panel presence where required, color accessibility, resolution and format, statistical uncertainty display
+   - Run programmatic physics sanity checks on plotting code and output data
    - Classify issues as (A) must fix, (B) should fix, (C) cosmetic suggestion
    - Write output to: `review/plot-validation/{REVIEW}.md`
 
 4. **After all reviewers complete, spawn arbiter** via SendMessage:
-   - Read: the artifact, all review files (latest from `review/physics/`, `review/critical/`, `review/constructive/`, and `review/plot-validation/` if it exists)
+   - Read: the artifact, all review files (latest from `review/analysis/`, and `review/plot-validation/` if it exists)
    - For each issue: if multiple reviewers agree, accept; if they disagree, assess independently; if all missed something, raise it
    - Incorporate plot-validator findings: Category A plot issues are treated as Category A overall
    - Write output to: `review/arbiter/` with session-named filename
@@ -141,9 +135,8 @@ After the review completes, report:
 
 ```
 Phase {phase} review: {PASS | ESCALATE}
-  Review tier: 4-bot
   Reviewers: {list of reviewer types used}
-  Plot validation: {included | skipped (no figures)}
+  Plot validation: {included | not applicable}
   Iterations: {count}
   Artifact: {path to final artifact}
   Decision: {arbiter decision}

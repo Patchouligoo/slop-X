@@ -10,7 +10,7 @@
 | 2: Execution | `BACKGROUND.md` | Background estimates, closure tests with uncertainties |
 | 2: Execution | `INFERENCE.md` | Systematic table, fit model, expected results, fit diagnostics |
 | 2: Execution | `analysis.py` + `results.json` | Self-contained script with `--blinded` support, machine-readable expected results (JSON from `--blinded` run) |
-| 3: Final Review | `review/` | Review artifacts (physics, critical, constructive, plot-validation, arbiter verdict) |
+| 3: Final Review | `review/` | Review artifacts (analysis review, plot-validation, arbiter verdict) |
 | 4: Unblinding | `UNBLINDING.md` | Observed mu_val/mu_err, expected vs observed comparison, anomaly assessment, post-fit diagnostics with SR data |
 | 4: Unblinding | Updated `results.json` | Observed results replacing expected results |
 | 5: Summary | `SUMMARY.md` | Full analysis chain summary, lessons learned, potential improvements |

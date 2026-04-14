@@ -24,25 +24,23 @@ definitions. This file provides the mapping and launch instructions.
 
 #### Review Agents
 
-| Agent | Phase | Description |
-|-------|-------|-------------|
-| `physics-reviewer` | 1,2,3,4,5: Review | Senior physicist review (no methodology — pure physics) |
-| `critical-reviewer` | 1,2,3,4,5: Review | Find flaws (bad cop) |
-| `constructive-reviewer` | 1,2,3,4,5: Review | Strengthen analysis (good cop) |
-| `plot-validator` | 1,2,3,4,5: Review | Programmatic + physics sanity checks on figures |
-| `arbiter` | 1,2,3,4,5: Review | Adjudicate, issue PASS/ITERATE/ESCALATE |
+| Agent | Phases | Description |
+|-------|--------|-------------|
+| `analysis-reviewer` | 1,2,3,4,5 | Physics correctness, code correctness, conventions compliance, completeness |
+| `plot-validator` | 2,3,4 | Programmatic + physics sanity checks on figures |
+| `arbiter` | 1,2,3,4,5 | Adjudicate findings, issue PASS/ITERATE/ESCALATE |
 
 ---
 
 ### Phase-to-Agent Mapping
 
-| Phase | Executors | Review | Review agents |
-|-------|-----------|--------|---------------|
-| **1: Strategy** | `lead-analyst` + `data-explorer` (parallel) | 4-bot | physics + critical + constructive + plot-validator → arbiter |
-| **2: Execution** | `signal-lead` + `background-estimator` (parallel) → `systematics-fitter` | 4-bot after inference | physics + critical + constructive + plot-validator → arbiter |
-| **3: Review** | *(no executors — review only)* | 4-bot | physics + critical + constructive + plot-validator → arbiter |
-| **4: Unblinding** | `unblinding-analyst` | 4-bot after unblinding | physics + critical + constructive + plot-validator → arbiter |
-| **5: Summary** | `summary-writer` | 4-bot after summary | physics + critical + constructive + plot-validator → arbiter |
+| Phase | Executors | Reviewers |
+|-------|-----------|-----------|
+| **1: Strategy** | `lead-analyst` + `data-explorer` (parallel) | `analysis-reviewer` → `arbiter` |
+| **2: Execution** | `signal-lead` + `background-estimator` (parallel) → `systematics-fitter` | `analysis-reviewer` + `plot-validator` → `arbiter` |
+| **3: Review** | *(no executors — review only)* | `analysis-reviewer` + `plot-validator` → `arbiter` |
+| **4: Unblinding** | `unblinding-analyst` | `analysis-reviewer` + `plot-validator` → `arbiter` |
+| **5: Summary** | `summary-writer` | `analysis-reviewer` → `arbiter` |
 
 ---
 
@@ -84,92 +82,31 @@ When complete, state what you produced and any open issues.
 
 ---
 
-### Physics Reviewer Launch Template
+### Analysis Reviewer Launch Template
 
-**Context:** Bird's-eye framing, physics prompt, artifact under review.
-**Does NOT receive:** Methodology spec, conventions files, review criteria.
-The physics reviewer evaluates the work purely as a senior collaboration
-member would.
+**Context:** Bird's-eye framing, physics prompt, methodology spec (review focus
+for this phase), applicable conventions, artifact under review, upstream
+artifacts, experiment log
 
-**Writes:** `{NAME}_PHYSICS_REVIEW.md`
+**Writes:** `{NAME}_ANALYSIS_REVIEW.md`
 
 **Instruction core:**
 ```
-You are a senior collaboration member reviewing this analysis for physics
-approval. Your detailed role instructions are in .claude/agents/physics-reviewer.md.
+You are a senior reviewer for this analysis. Your detailed role instructions
+are in .claude/agents/analysis-reviewer.md.
 
-You have NOT read the methodology spec or conventions — you are
-reviewing the physics on its merits.
-
-Read the artifact. Read all figures produced by this phase.
+Read the artifact under review and all upstream artifacts.
+Read methodology/05-review.md for review criteria.
+Read the applicable conventions/ file and verify coverage row-by-row.
 
 Evaluate:
-- Is the physics motivation sound and complete?
-- Are the backgrounds correctly identified and estimated?
-- Is the systematic treatment appropriate for this measurement?
-- Are the cross-checks adequate?
-- Do the plots and numbers make physical sense?
-- Are yields in the expected ballpark?
-- Do distributions have the right shapes?
-- Would you approve this analysis for publication?
+- Physics correctness: backgrounds, systematics, cross-checks, sanity
+- Code correctness: does analysis.py run and produce valid results?
+- Conventions compliance: are required sources covered or justified?
+- Completeness: what would a competing group have that we don't?
 
 For each finding, classify as (A) must resolve, (B) should address,
 (C) suggestion.
-```
-
----
-
-### Critical Reviewer Launch Template
-
-**Context:** Bird's-eye framing, review methodology (Section 5), applicable phase
-section from Section 3, artifact under review, upstream artifacts, experiment log
-
-**Writes:** `{NAME}_CRITICAL_REVIEW.md`
-
-**Instruction core:**
-```
-You are a critical reviewer for a physics analysis. Your detailed role
-instructions are in .claude/agents/critical-reviewer.md.
-
-Your job is to find flaws — both in what is present (correctness) and in
-what is absent (completeness).
-
-Read the artifact and the experiment log (to understand what was tried).
-Read methodology/05-review.md Section 5.3 (reviewer framing) and Section 5.4
-(review focus) — these define what you must check.
-Read the applicable conventions/ file and verify coverage row-by-row.
-Read methodology/appendix-plotting.md for the figure checklist —
-apply it to every figure.
-
-Before concluding, answer: "If a competing group published a measurement of
-the same quantity next month, what would they have that we don't?" If the
-answer is non-empty and unjustified, those are Category A findings.
-
-Classify every issue as (A) must resolve, (B) should address, (C) suggestion.
-Err on the side of strictness.
-```
-
----
-
-### Constructive Reviewer Launch Template
-
-**Context:** same as critical reviewer
-
-**Writes:** `{NAME}_CONSTRUCTIVE_REVIEW.md`
-
-**Instruction core:**
-```
-You are a constructive reviewer for a physics analysis. Your detailed role
-instructions are in .claude/agents/constructive-reviewer.md.
-
-Your job is to strengthen the analysis.
-
-Read the artifact and experiment log.
-
-Identify where the argument could be clearer, where additional validation
-would build confidence, and where the presentation could be improved.
-Focus on Category B and C issues, but escalate to A if you find genuine
-errors.
 ```
 
 ---
@@ -207,7 +144,7 @@ Every failed check is a Category A finding. Produce a PLOT_VALIDATION report.
 ### Arbiter Launch Template
 
 **Context:** Bird's-eye framing, review methodology (Section 5), artifact, all
-reviews (physics, critical, constructive, plot-validation)
+reviews (analysis review, plot-validation if present)
 
 **Writes:** `{NAME}_ARBITER.md`
 
@@ -216,8 +153,8 @@ reviews (physics, critical, constructive, plot-validation)
 You are the arbiter. Your detailed role instructions are in
 .claude/agents/arbiter.md.
 
-Read the artifact and ALL reviews (physics, critical, constructive,
-plot-validation). For each issue:
+Read the artifact and ALL reviews (analysis review, plot-validation if
+present). For each issue:
 - If reviewers agree: accept the classification
 - If they disagree: assess independently with justification
 - If they all missed something: raise it yourself

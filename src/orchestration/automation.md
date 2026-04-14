@@ -19,11 +19,12 @@ pick_session_name() {
   echo "$(shuf -n1 names_pool.txt)"
 }
 
-# --- Review function ---
+# --- Review functions ---
 
-# 4-bot review: physics + critical + constructive + plot-validator → arbiter.
+# Review with plot-validator: analysis-reviewer + plot-validator → arbiter.
+# Used for Phases 2, 3, 4.
 # Returns 0 on PASS, 1 on max-iterations/escalation.
-run_4bot_review() {
+run_review_with_plots() {
   dir=$1
   i=0
   while [ $i -lt $max_review_iterations ]; do
@@ -35,13 +36,9 @@ run_4bot_review() {
       echo "STRONG WARNING: review iteration $i for $dir"
     fi
 
-    # Physics, critical, constructive, and plot-validator run in parallel
+    # Analysis reviewer and plot-validator run in parallel
     run_agent --name "$(pick_session_name)" \
-      --output "$dir/review/physics" "physics review" &
-    run_agent --name "$(pick_session_name)" \
-      --output "$dir/review/critical" "critical review" &
-    run_agent --name "$(pick_session_name)" \
-      --output "$dir/review/constructive" "constructive review" &
+      --output "$dir/review/analysis" "analysis review" &
     run_agent --name "$(pick_session_name)" \
       --output "$dir/review/plot-validation" "plot validation" &
     wait
@@ -72,17 +69,61 @@ run_4bot_review() {
   return 1
 }
 
+# Review without plot-validator: analysis-reviewer → arbiter.
+# Used for Phases 1, 5.
+run_review() {
+  dir=$1
+  i=0
+  while [ $i -lt $max_review_iterations ]; do
+    i=$((i + 1))
+    if [ $i -gt 3 ]; then
+      echo "WARNING: review iteration $i for $dir"
+    fi
+    if [ $i -gt 5 ]; then
+      echo "STRONG WARNING: review iteration $i for $dir"
+    fi
+
+    # Analysis reviewer only
+    run_agent --name "$(pick_session_name)" \
+      --output "$dir/review/analysis" "analysis review"
+
+    # Arbiter reads the review and the artifact
+    run_agent --name "$(pick_session_name)" \
+      --output "$dir/review/arbiter" "arbitrate"
+    decision=$(extract_decision "$dir/review/arbiter")
+
+    case $decision in
+      PASS)
+        return 0
+        ;;
+      ITERATE)
+        exec_name=$(pick_session_name)
+        write_iteration_inputs "$dir" "$i" "$exec_name"
+        run_agent --name "$exec_name" \
+          --output "$dir/exec" "iterate v$((i+1))"
+        ;;
+      ESCALATE)
+        echo "ESCALATED: $dir — review could not resolve issues"
+        return 1
+        ;;
+    esac
+  done
+
+  echo "ERROR: review reached $max_review_iterations iterations for $dir"
+  return 1
+}
+
 # --- Main pipeline (5-phase) ---
 
-# Phase 1: Strategy
+# Phase 1: Strategy (review without plot-validator)
 run_agent --name "$(pick_session_name)" \
   --output "phase1_strategy/exec" "execute strategy (lead-analyst)"
 run_agent --name "$(pick_session_name)" \
   --output "phase1_strategy/exec" "survey data (data-explorer)" &
 wait
-run_4bot_review "phase1_strategy" || exit 1
+run_review "phase1_strategy" || exit 1
 
-# Phase 2: Execution
+# Phase 2: Execution (review with plot-validator)
 # 2.1-2.2: Selection and background in parallel
 run_agent --name "$(pick_session_name)" \
   --output "phase2_execution/exec" "implement selection (signal-lead)" &
@@ -95,21 +136,21 @@ run_agent --name "$(pick_session_name)" \
   --output "phase2_execution/exec" \
   "build fit, evaluate systematics, produce analysis.py + results.json (systematics-fitter)"
 
-# Phase 3: Review
-run_4bot_review "phase2_execution" || exit 1
+# Phase 3: Review (review with plot-validator)
+run_review_with_plots "phase2_execution" || exit 1
 
-# Phase 4: Unblinding
+# Phase 4: Unblinding (review with plot-validator)
 # Blinding is lifted — this agent may access SR events from the measurement data
 run_agent --name "$(pick_session_name)" \
   --output "phase4_unblinding/exec" \
   "unblind: run analysis.py on full data including SR, produce observed results (unblinding-analyst)"
-run_4bot_review "phase4_unblinding" || exit 1
+run_review_with_plots "phase4_unblinding" || exit 1
 
-# Phase 5: Summary
+# Phase 5: Summary (review without plot-validator)
 run_agent --name "$(pick_session_name)" \
   --output "phase5_summary/exec" \
   "produce final summary, update STRATEGY.md with Phase 4/5 results (summary-writer)"
-run_4bot_review "phase5_summary" || exit 1
+run_review "phase5_summary" || exit 1
 
 # On PASS: verify results.json exists with observed results
 if [ -f "results.json" ] && [ -f "SUMMARY.md" ]; then
