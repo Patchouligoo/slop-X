@@ -127,9 +127,11 @@ slop-X/
 ## Output
 
 The pipeline produces:
-- `analysis.py` — self-contained script that reads `data.h5` and `cr_data.h5`,
-  performs selection, background estimation, and fit, writes `results.json`
-- `results.json` — `{"mu_val": <float>, "mu_err": <float>}`
+- `analysis.py` — self-contained script that reads `data.h5`, `cr_data.h5`,
+  and `signal_mc.h5`, performs selection, background estimation, and fit,
+  writes `results.json`
+- `results.json` — `{"mu_val": <float>, "mu_err": <float>}` (observed, after unblinding)
+- `SUMMARY.md` — full analysis chain summary
 
 ## Environment
 

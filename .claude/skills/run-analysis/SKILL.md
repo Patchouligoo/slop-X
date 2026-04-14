@@ -119,7 +119,7 @@ measurement data during this phase. All SR results must use Asimov data.
 1. Update STATE.md: status=reviewing
 2. Run `/review-phase 3` for final results review:
    - Reviews the complete analysis as a journal referee would
-   - On PASS: proceed to finalization
+   - On PASS: proceed to Phase 4 (Unblinding)
    - On ITERATE: re-spawn relevant agent(s) with feedback, loop
    - On ESCALATE: report failure
 

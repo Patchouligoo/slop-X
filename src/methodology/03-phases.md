@@ -293,7 +293,7 @@ The orchestrator spawns the review protocol defined in Section 5:
 - `arbiter` synthesizes findings into a verdict
 
 **Review outcomes:**
-- **PASS** — Analysis is complete. Finalize results.
+- **PASS** — Blinded analysis validated. Proceed to unblinding.
 - **ITERATE** — Feedback provided. Re-spawn execution agents to address
   Category A findings, then re-review. Warn at iteration 3, hard cap at 10.
 - **ESCALATE** — Fundamental issue found. Report failure with explanation.

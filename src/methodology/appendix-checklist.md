@@ -8,7 +8,7 @@
 | 1: Strategy | `DATA_SURVEY.md` | Sample inventory, data quality assessment, variable ranking, preselection cutflow |
 | 2: Execution | `SELECTION.md` | Selection definition, region definitions, per-cut distributions |
 | 2: Execution | `BACKGROUND.md` | Background estimates, closure tests with uncertainties |
-| 2: Execution | `INFERENCE.md` | Systematic table, fit model, expected + observed results, fit diagnostics |
+| 2: Execution | `INFERENCE.md` | Systematic table, fit model, expected results, fit diagnostics |
 | 2: Execution | `analysis.py` + `results.json` | Self-contained script with `--blinded` support, machine-readable expected results (JSON from `--blinded` run) |
 | 3: Final Review | `review/` | Review artifacts (physics, critical, constructive, plot-validation, arbiter verdict) |
 | 4: Unblinding | `UNBLINDING.md` | Observed mu_val/mu_err, expected vs observed comparison, anomaly assessment, post-fit diagnostics with SR data |
