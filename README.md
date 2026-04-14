@@ -17,7 +17,7 @@ strength.
  ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌─────────────┐   ┌──────────┐
  │ Phase 1  │──▶│   Phase 2    │──▶│ Phase 3  │──▶│   Phase 4   │──▶│ Phase 5  │
  │ Strategy │   │  Execution   │   │  Review  │   │ Unblinding  │   │ Summary  │
- │ (review) │   │(+plot-valid) │   │(+plot-v) │   │ (+plot-v)   │   │ (review) │
+ │ (review) │   │(+plot-valid) │   │(+plot-v) │   │  (review)   │   │(no rev.) │
  └──────────┘   └──────────────┘   └──────────┘   └─────────────┘   └──────────┘
        ◄──── BLINDED (SR data forbidden) ────►
 ```
@@ -29,8 +29,8 @@ strength.
 | **1. Strategy** | `lead-analyst` + `data-explorer` | analysis-reviewer → arbiter | `STRATEGY.md`, `DATA_SURVEY.md` |
 | **2. Execution** | `signal-lead` + `background-estimator` → `systematics-fitter` | analysis-reviewer + plot-validator → arbiter | `SELECTION.md`, `BACKGROUND.md`, `INFERENCE.md`, `analysis.py`, `results.json` |
 | **3. Review** | *(none — review only)* | analysis-reviewer + plot-validator → arbiter | PASS / ITERATE / ESCALATE |
-| **4. Unblinding** | `unblinding-analyst` | analysis-reviewer + plot-validator → arbiter | `UNBLINDING.md`, updated `results.json` |
-| **5. Summary** | `summary-writer` | analysis-reviewer → arbiter | `SUMMARY.md`, updated `STRATEGY.md` |
+| **4. Unblinding** | `unblinding-analyst` | analysis-reviewer → arbiter | `UNBLINDING.md`, updated `results.json` |
+| **5. Summary** | `summary-writer` | *(no review)* | `SUMMARY.md`, updated `STRATEGY.md` |
 
 Phases 1–3 are **blinded** — agents must not access Signal Region events from
 the measurement data. Blinding is lifted in Phase 4.
@@ -43,7 +43,7 @@ Phase 2 runs in substages: data exploration, selection & background estimation
 Each review runs one or two reviewers, then an arbiter:
 
 ```
-analysis-reviewer [+ plot-validator (Phases 2-4)]
+analysis-reviewer [+ plot-validator (Phases 2-3)]
                               │
                               ▼
                            arbiter

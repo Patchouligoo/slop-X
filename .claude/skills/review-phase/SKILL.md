@@ -24,8 +24,19 @@ The argument is optionally a phase identifier: `1`, `2`, `3`, `4`, or `5`. If om
 | 1 (Strategy) | analysis-reviewer → arbiter | No |
 | 2 (Execution) | analysis-reviewer + plot-validator → arbiter | Yes |
 | 3 (Final Review) | analysis-reviewer + plot-validator → arbiter | Yes |
-| 4 (Unblinding) | analysis-reviewer + plot-validator → arbiter | Yes |
-| 5 (Summary) | analysis-reviewer → arbiter | No |
+| 4 (Unblinding) | analysis-reviewer → arbiter | No |
+| 5 (Summary) | **no review — skip directly to PASS** | No |
+
+**Phase 5 short-circuit.** If the phase under review is Phase 5, do NOT spawn
+any reviewer or arbiter. Update STATE.md (`status: passed`), record in the
+Phase History table, and return `PASS` immediately. The summary is
+documentation-only; its correctness is already covered by the Phase 1–4
+artifacts it cites.
+
+**Phase 4 rationale.** The only physics-relevant output of Phase 4 is the
+observed significance. Plot-level validation
+adds no signal beyond what the analysis reviewer already checks, so
+plot-validator is skipped.
 
 ## Step 2: Locate the Artifact Under Review
 
@@ -41,7 +52,7 @@ Find the latest artifact for this phase:
 
 Read the experiment log for this phase if it exists.
 
-Identify all figures in the `figures/` directory -- these will be passed to the plot-validator (Phases 2-4).
+Identify all figures in the `figures/` directory -- these will be passed to the plot-validator (Phases 2-3 only).
 
 ## Step 3: Run the Review
 
@@ -77,9 +88,11 @@ Loop until PASS, ESCALATE, or max iterations:
    If you produce review conclusions without spawning the reviewer agent,
    that is a protocol violation.**
 
-   **For Phases 2, 3, 4** (with plot-validator): Spawn `analysis-reviewer` and `plot-validator` **in parallel** via SendMessage.
+   **For Phases 2, 3** (with plot-validator): Spawn `analysis-reviewer` and `plot-validator` **in parallel** via SendMessage.
 
-   **For Phases 1, 5** (without plot-validator): Spawn `analysis-reviewer` only via SendMessage.
+   **For Phases 1, 4** (analysis reviewer only): Spawn `analysis-reviewer` via SendMessage.
+
+   **Phase 5**: should have been short-circuited in Step 1; if you reach here for Phase 5, return to Step 1 and apply the short-circuit.
 
    Analysis reviewer instructions:
    - Read: the artifact under review, upstream artifacts, experiment log
@@ -89,7 +102,7 @@ Loop until PASS, ESCALATE, or max iterations:
    - Classify every issue as (A) must resolve, (B) should address, (C) suggestion
    - Write output to: `review/analysis/{REVIEW}.md` with session-named filename
 
-   Plot-validator instructions (Phases 2-4 only):
+   Plot-validator instructions (Phases 2-3 only):
    - Read: all figures in the `figures/` directory
    - Read: `conventions/` plotting standards (axis labels, font sizes, color schemes, legend placement, ratio panels, style requirements)
    - Validate each figure against the conventions
@@ -100,7 +113,7 @@ Loop until PASS, ESCALATE, or max iterations:
 
 3a. **Verify review files exist.** Before spawning the arbiter, confirm:
    - `review/analysis/` contains a new file from this review iteration
-   - For Phases 2/3/4: `review/plot-validation/` also has a new file
+   - For Phases 2/3: `review/plot-validation/` also has a new file
    If any expected file is missing, re-spawn the missing reviewer(s).
    Do NOT proceed to the arbiter without on-disk review artifacts.
 

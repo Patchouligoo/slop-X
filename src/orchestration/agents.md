@@ -39,8 +39,8 @@ definitions. This file provides the mapping and launch instructions.
 | **1: Strategy** | `lead-analyst` + `data-explorer` (parallel) | `analysis-reviewer` → `arbiter` |
 | **2: Execution** | `signal-lead` + `background-estimator` (parallel) → `systematics-fitter` | `analysis-reviewer` + `plot-validator` → `arbiter` |
 | **3: Review** | *(no executors — review only)* | `analysis-reviewer` + `plot-validator` → `arbiter` |
-| **4: Unblinding** | `unblinding-analyst` | `analysis-reviewer` + `plot-validator` → `arbiter` |
-| **5: Summary** | `summary-writer` | `analysis-reviewer` → `arbiter` |
+| **4: Unblinding** | `unblinding-analyst` | `analysis-reviewer` → `arbiter` |
+| **5: Summary** | `summary-writer` | *(no review)* |
 
 ---
 

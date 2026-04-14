@@ -22,7 +22,7 @@ pick_session_name() {
 # --- Review functions ---
 
 # Review with plot-validator: analysis-reviewer + plot-validator → arbiter.
-# Used for Phases 2, 3, 4.
+# Used for Phases 2, 3.
 # Returns 0 on PASS, 1 on max-iterations/escalation.
 run_review_with_plots() {
   dir=$1
@@ -70,7 +70,7 @@ run_review_with_plots() {
 }
 
 # Review without plot-validator: analysis-reviewer → arbiter.
-# Used for Phases 1, 5.
+# Used for Phases 1, 4.
 run_review() {
   dir=$1
   i=0
@@ -139,18 +139,21 @@ run_agent --name "$(pick_session_name)" \
 # Phase 3: Review (review with plot-validator)
 run_review_with_plots "phase2_execution" || exit 1
 
-# Phase 4: Unblinding (review with plot-validator)
+# Phase 4: Unblinding (review without plot-validator — only significance matters)
 # Blinding is lifted — this agent may access SR events from the measurement data
 run_agent --name "$(pick_session_name)" \
   --output "phase4_unblinding/exec" \
   "unblind: run analysis.py on full data including SR, produce observed results (unblinding-analyst)"
-run_review_with_plots "phase4_unblinding" || exit 1
+run_review "phase4_unblinding" || exit 1
 
-# Phase 5: Summary (review without plot-validator)
+# Phase 5: Summary (no review — documentation only; artifact-completion check)
 run_agent --name "$(pick_session_name)" \
   --output "phase5_summary/exec" \
   "produce final summary, update STRATEGY.md with Phase 4/5 results (summary-writer)"
-run_review "phase5_summary" || exit 1
+if [ ! -f "SUMMARY.md" ]; then
+  echo "ERROR: Phase 5 missing SUMMARY.md"
+  exit 1
+fi
 
 # On PASS: verify results.json exists with observed results
 if [ -f "results.json" ] && [ -f "SUMMARY.md" ]; then

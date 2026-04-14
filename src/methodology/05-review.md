@@ -28,11 +28,12 @@ All reviews — regardless of intensity — use the same classification:
 | Phase 1: Strategy | `analysis-reviewer` → `arbiter` | Strategy rarely produces figures; physics and conventions review is sufficient. |
 | Phase 2: Execution | `analysis-reviewer` + `plot-validator` → `arbiter` | Code, fit results, and diagnostic plots all need review. |
 | Phase 3: Final Review | `analysis-reviewer` + `plot-validator` → `arbiter` | Complete package review — figures are re-examined alongside the analysis. |
-| Phase 4: Unblinding | `analysis-reviewer` + `plot-validator` → `arbiter` | First look at real SR data — new diagnostic plots need programmatic validation. |
-| Phase 5: Summary | `analysis-reviewer` → `arbiter` | Documentation completeness and internal consistency only — no new figures. |
+| Phase 4: Unblinding | `analysis-reviewer` → `arbiter` | Only the observed significance is physics-relevant; plot validation adds no signal beyond what the analysis reviewer already checks. |
+| Phase 5: Summary | **no review — skipped** | Summary is documentation-only. Every cited number was already validated in Phases 1–4; re-reviewing offers diminishing returns. The orchestrator marks Phase 5 PASS on artifact completion. |
 
 **Plot-validator** is spawned alongside the analysis-reviewer (in parallel) for
-phases that produce figures (Phases 2, 3, 4). The plot-validator runs
+phases that produce figures that feed the physics result (Phases 2, 3). The
+plot-validator runs
 programmatic checks (not visual inspection) on all plotting code and output
 data. Its findings are passed to the arbiter as additional review input.
 Plot-validator red flags are automatic Category A — the arbiter must not
@@ -340,21 +341,19 @@ in the fit when real SR data is used?"
   (modeling problem vs genuine physics) supported by evidence?
 - Does `results.json` contain the observed (not expected) mu_val and mu_err?
 
-### 5.4.6 Summary Review (Phase 5)
+### 5.4.6 Summary (Phase 5) — no review
 
-The Phase 5 (Summary) review evaluates the final documentation.
-
-**Framing:** The reviewer examines the summary as a reader who has not
-followed the analysis. The questions are: "Does this summary give a complete,
-accurate, and internally consistent account of the analysis?"
-
-**Required checks:**
+Phase 5 is documentation-only. Every cited number was already validated in
+Phases 1–4, so there is nothing new to review. The orchestrator marks Phase 5
+PASS on artifact completion (SUMMARY.md present and STRATEGY.md updated with
+Phase 4/5 sections) without spawning reviewers or the arbiter. Treat the
+"required checks" below as authoring guidance for the summary-writer, not as
+a review gate:
 - Does STRATEGY.md contain Phase 4 and Phase 5 results (appended sections)?
 - Are all numbers in the summary consistent with the source artifacts?
 - Is the full analysis chain documented (strategy → execution → review →
   unblinding → summary)?
 - Are anomalies and their resolution documented?
-- Are lessons learned and potential improvements included?
 - Would a reader unfamiliar with the analysis understand what was done and
   what was found?
 
@@ -363,8 +362,9 @@ accurate, and internally consistent account of the analysis?"
 When the analysis runs in a single session, reviews are implemented by
 spawning dedicated reviewer subagents. The `analysis-reviewer` subagent
 reads the phase artifact from disk and applies the review criteria. For
-phases with figures (2, 3, 4), the `plot-validator` runs in parallel. The
-`arbiter` reads all review outputs and issues the verdict.
+phases with figures that feed the physics result (2, 3), the
+`plot-validator` runs in parallel. The `arbiter` reads all review outputs
+and issues the verdict. Phase 5 is skipped entirely.
 
 **Minimum review checklist (all phases):**
 

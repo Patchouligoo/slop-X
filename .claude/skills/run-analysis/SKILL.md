@@ -158,10 +158,10 @@ permitted to examine SR events from the measurement data.
    - Must document the full analysis chain
    - Must append Phase 4 and Phase 5 results to STRATEGY.md (in-place, at the end)
    - Output: `SUMMARY.md`, updated `STRATEGY.md`
-3. Run `/review-phase 5` to review the summary.
-   - On PASS: proceed to finalization
-   - On ITERATE: re-spawn `summary-writer` with arbiter feedback, loop
-   - On ESCALATE: report failure and stop
+3. Phase 5 is documentation-only — no reviewer or arbiter runs.
+   - Verify `SUMMARY.md` exists and `STRATEGY.md` has been updated with Phase 4/5 sections
+   - On artifact completion: mark Phase 5 PASS in STATE.md and proceed to finalization
+   - On missing/invalid artifact: report failure and stop (do not re-spawn)
 
 ## Step 8: Finalize
 

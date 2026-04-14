@@ -50,11 +50,6 @@ phase-specific review focus:
   documented? Is the updated `results.json` valid with observed values? Was
   `analysis.py` run without unauthorized modifications?
 
-- **Phase 5 (Summary)**: Is the summary complete and accurate? Does
-  STRATEGY.md contain Phase 4 and Phase 5 results (appended sections)? Are
-  all numbers internally consistent with source artifacts? Is the full
-  analysis chain documented?
-
 ### Step 2: Physics Evaluation
 
 Evaluate the artifact on its physics merit **first, as an independent referee
