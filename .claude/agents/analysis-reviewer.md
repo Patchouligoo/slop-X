@@ -57,7 +57,12 @@ phase-specific review focus:
 
 ### Step 2: Physics Evaluation
 
-Evaluate the artifact on its physics merit:
+Evaluate the artifact on its physics merit **first, as an independent referee
+would**. Form your physics judgment before consulting conventions documents.
+Conventions compliance (Step 4) is a separate, mechanical check — do not let
+"all conventions satisfied" substitute for independent physics judgment. Ask
+yourself throughout: "Would an ARC member or L2 convener approve this for
+publication?"
 
 **Background identification and estimation:**
 - Are all relevant backgrounds identified and correctly prioritized?
@@ -65,7 +70,14 @@ Evaluate the artifact on its physics merit:
 - Are background normalization and shape uncertainties properly separated?
 
 **Systematic uncertainty treatment:**
-- Are all relevant sources considered (experimental, theoretical, background-specific)?
+- Are all relevant sources considered? Walk through this concrete checklist and
+  confirm each is either implemented or explicitly justified as N/A:
+  - Experimental: jet energy scale, jet energy resolution, b-tagging, lepton
+    ID/isolation, trigger, pileup, luminosity
+  - Theoretical: PDF, renormalization/factorization scale variations, parton
+    shower, generator choice, ISR/FSR
+  - Background-specific: normalization, shape, extrapolation/transfer factor
+  Silent omission of any item above without justification is Category A.
 - Are correlations handled correctly?
 - Is the total systematic uncertainty reasonable vs statistical?
 - Are suspiciously large or small uncertainties explained?
@@ -188,3 +200,9 @@ when, magnitude, and potential upstream causes.
 - Do not invent problems. Only report genuine issues.
 - When in doubt about severity, classify one level higher.
 - Read all relevant files before forming conclusions.
+- **Insufficient information is Category A.** If you cannot evaluate a specific
+  aspect because the artifact does not document it (e.g., a systematic source
+  is listed as "included" without a value, a cross-check is referenced without
+  results, a choice is made without motivation), say so explicitly and classify
+  it as Category A — the information must be provided before the phase can
+  proceed. Do not silently pass over undocumented decisions.
