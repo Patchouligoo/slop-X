@@ -118,7 +118,14 @@ measurement data during this phase. All SR results must use Asimov data.
 2. Run `/review-phase 3` for final results review:
    - Reviews the complete analysis as a journal referee would
    - On PASS: proceed to Phase 4 (Unblinding)
-   - On ITERATE: re-spawn relevant agent(s) with feedback, loop
+   - On ITERATE: Phase 3 is review-only and has no dedicated executor.
+     When the arbiter issues ITERATE with Category A findings:
+     (a) If findings require code or script changes (plotting fixes,
+         analysis.py corrections): re-spawn the `systematics-fitter`
+         agent with the arbiter's feedback and current artifacts.
+     (b) After the executor completes, re-run `/review-phase 3` (full
+         review cycle: analysis-reviewer + plot-validator + arbiter).
+     Do NOT skip any reviewer on subsequent iterations.
    - On ESCALATE: report failure
 
 ## Step 6: Phase 4 — Unblinding

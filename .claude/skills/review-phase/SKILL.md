@@ -71,6 +71,12 @@ Loop until PASS, ESCALATE, or max iterations:
 
 3. **Spawn reviewers based on phase composition:**
 
+   **CRITICAL: You (the orchestrator) must NOT perform any review yourself.
+   Every reviewer below MUST be spawned as a SEPARATE agent via the Agent
+   tool. Do NOT summarize or assess the artifact in place of the reviewer.
+   If you produce review conclusions without spawning the reviewer agent,
+   that is a protocol violation.**
+
    **For Phases 2, 3, 4** (with plot-validator): Spawn `analysis-reviewer` and `plot-validator` **in parallel** via SendMessage.
 
    **For Phases 1, 5** (without plot-validator): Spawn `analysis-reviewer` only via SendMessage.
@@ -91,6 +97,12 @@ Loop until PASS, ESCALATE, or max iterations:
    - Run programmatic physics sanity checks on plotting code and output data
    - Classify issues as (A) must fix, (B) should fix, (C) cosmetic suggestion
    - Write output to: `review/plot-validation/{REVIEW}.md`
+
+3a. **Verify review files exist.** Before spawning the arbiter, confirm:
+   - `review/analysis/` contains a new file from this review iteration
+   - For Phases 2/3/4: `review/plot-validation/` also has a new file
+   If any expected file is missing, re-spawn the missing reviewer(s).
+   Do NOT proceed to the arbiter without on-disk review artifacts.
 
 4. **After all reviewers complete, spawn arbiter** via SendMessage:
    - Read: the artifact, all review files (latest from `review/analysis/`, and `review/plot-validation/` if it exists)
