@@ -109,6 +109,30 @@ analysis_name/
     plot-validation/
     arbiter/
 
-  analysis.py                          # Final deliverable
-  results.json                         # Final deliverable
+  phase4_unblinding/
+    experiment_log.md
+    scripts/
+    figures/
+    exec/
+      UNBLINDING_name_timestamp.md
+    review/
+      physics/
+      critical/
+      constructive/
+      plot-validation/
+      arbiter/
+
+  phase5_summary/
+    experiment_log.md
+    exec/
+      SUMMARY_name_timestamp.md
+    review/
+      physics/
+      critical/
+      constructive/
+      plot-validation/
+      arbiter/
+
+  analysis.py                          # Final deliverable (from Phase 2)
+  results.json                         # Final deliverable (observed, from Phase 4)
 ```

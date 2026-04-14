@@ -72,7 +72,7 @@ run_4bot_review() {
   return 1
 }
 
-# --- Main pipeline (3-phase) ---
+# --- Main pipeline (5-phase) ---
 
 # Phase 1: Strategy
 run_agent --name "$(pick_session_name)" \
@@ -98,11 +98,24 @@ run_agent --name "$(pick_session_name)" \
 # Phase 3: Review
 run_4bot_review "phase2_execution" || exit 1
 
-# On PASS: verify results.json exists and is valid
-if [ -f "results.json" ]; then
+# Phase 4: Unblinding
+# Blinding is lifted — this agent may access SR events from the measurement data
+run_agent --name "$(pick_session_name)" \
+  --output "phase4_unblinding/exec" \
+  "unblind: run analysis.py on full data including SR, produce observed results (unblinding-analyst)"
+run_4bot_review "phase4_unblinding" || exit 1
+
+# Phase 5: Summary
+run_agent --name "$(pick_session_name)" \
+  --output "phase5_summary/exec" \
+  "produce final summary, update STRATEGY.md with Phase 4/5 results (summary-writer)"
+run_4bot_review "phase5_summary" || exit 1
+
+# On PASS: verify results.json exists with observed results
+if [ -f "results.json" ] && [ -f "SUMMARY.md" ]; then
   echo "Analysis complete."
 else
-  echo "ERROR: results.json not found after review PASS"
+  echo "ERROR: results.json or SUMMARY.md not found after review PASS"
   exit 1
 fi
 ```

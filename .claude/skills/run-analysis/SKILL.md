@@ -14,12 +14,18 @@ The argument is the physics prompt (inline text or a path to a `.md` file).
 
 ## Overview
 
-This is a simplified pipeline adapted for bump hunt analyses. It uses a 3-phase workflow:
+This is a simplified pipeline adapted for bump hunt analyses. It uses a 5-phase workflow:
 1. **Strategy** — Plan the analysis approach
-2. **Execution** — Implement selection, background estimation, and fit
-3. **Review** — Validate the results
+2. **Execution** — Implement selection, background estimation, and fit (blinded)
+3. **Review** — Validate the results (blinded)
+4. **Unblinding** — Run analysis on actual SR data, produce observed results
+5. **Summary** — Document the full analysis chain, update STRATEGY.md
 
-The pipeline produces `results.json` with `{"mu_val": <float>, "mu_err": <float>}`.
+**Blinding protocol:** During Phases 1–3, agents must NOT access Signal Region
+events from the measurement data. Only control region data, MC samples, and
+sideband regions are permitted. See `methodology/03-phases.md` for details.
+
+The pipeline produces `results.json` with observed `{"mu_val": <float>, "mu_err": <float>}` after unblinding.
 
 ## Step 1: Read Context
 
@@ -58,6 +64,9 @@ Write `experiment_log.md` as empty.
 
 ## Step 3: Phase 1 — Strategy
 
+**Blinding protocol active:** Agents must not access SR events from the
+measurement data during this phase.
+
 1. Update STATE.md: status=strategy
 2. Spawn `lead-analyst` agent:
    - Task: Develop a bump hunt analysis strategy
@@ -75,6 +84,9 @@ Write `experiment_log.md` as empty.
 
 ## Step 4: Phase 2 — Execution
 
+**Blinding protocol active:** Agents must not access SR events from the
+measurement data during this phase. All SR results must use Asimov data.
+
 1. Update STATE.md: status=executing
 2. Spawn `signal-lead` and `background-estimator` agents in parallel:
    - `signal-lead`: Implement event selection based on STRATEGY.md
@@ -91,9 +103,12 @@ Write `experiment_log.md` as empty.
      - Reads input files from the current directory
      - Performs the full analysis (selection, background estimation, fit)
      - Writes `results.json` with `{"mu_val": <float>, "mu_err": <float>}`
-   - Run `analysis.py` and verify it produces valid `results.json`
+     - Supports a `--blinded` flag: when set, substitutes Asimov data in SR
+       instead of actual SR events. When absent, uses all data including SR.
+   - Run `analysis.py --blinded` and verify it produces valid `results.json`
+     containing expected results. Do NOT run without `--blinded` during this phase.
    - If it fails, debug and fix until it works
-   - Output: `INFERENCE.md`, `analysis.py`, `results.json`
+   - Output: `INFERENCE.md`, `analysis.py`, `results.json` (expected)
 4. Run `/review-phase 2` to review the execution artifacts.
    - On PASS: proceed to Phase 3
    - On ITERATE: re-spawn `systematics-fitter` with arbiter feedback, loop
@@ -108,12 +123,48 @@ Write `experiment_log.md` as empty.
    - On ITERATE: re-spawn relevant agent(s) with feedback, loop
    - On ESCALATE: report failure
 
-## Step 6: Finalize
+## Step 6: Phase 4 — Unblinding
 
-1. Verify `results.json` exists and contains valid `mu_val` and `mu_err`
-2. If `results.json` is missing or invalid, report failure
-3. Update STATE.md: status=complete
-4. Report: "Analysis complete. Results: mu_val={value}, mu_err={value}"
+**Blinding protocol lifted.** The `unblinding-analyst` is the first agent
+permitted to examine SR events from the measurement data.
+
+1. Update STATE.md: status=unblinding
+2. Spawn `unblinding-analyst` agent:
+   - Task: Run the existing `analysis.py` without `--blinded` on the full measurement data including SR
+   - Inputs: All Phase 2 artifacts, `analysis.py`, `results.json` (expected), `STRATEGY.md`
+   - The blinding protocol is now lifted — this agent may access SR data
+   - Run `analysis.py` (without `--blinded`) to produce observed mu_val and mu_err
+   - Must compare observed vs expected, flag anomalies
+   - Must produce post-unblinding diagnostic plots (data overlaid in SR)
+   - Does NOT rebuild the analysis or modify analysis.py — runs it as-is
+   - Output: `UNBLINDING.md`, updated `results.json` (observed)
+3. Run `/review-phase 4` to review unblinding results.
+   - On PASS: proceed to Phase 5
+   - On ITERATE: re-spawn `unblinding-analyst` with arbiter feedback, loop
+   - On ESCALATE: report failure and stop
+
+## Step 7: Phase 5 — Summary
+
+1. Update STATE.md: status=summarizing
+2. Spawn `summary-writer` agent:
+   - Task: Produce final analysis summary and update STRATEGY.md
+   - Inputs: All artifacts from Phases 1–4, all review artifacts
+   - Must document the full analysis chain
+   - Must append Phase 4 and Phase 5 results to STRATEGY.md (in-place, at the end)
+   - Output: `SUMMARY.md`, updated `STRATEGY.md`
+3. Run `/review-phase 5` to review the summary.
+   - On PASS: proceed to finalization
+   - On ITERATE: re-spawn `summary-writer` with arbiter feedback, loop
+   - On ESCALATE: report failure and stop
+
+## Step 8: Finalize
+
+1. Verify `results.json` exists and contains valid observed `mu_val` and `mu_err`
+2. Verify `SUMMARY.md` exists
+3. Verify `STRATEGY.md` contains Phase 4 and Phase 5 results
+4. If any deliverable is missing or invalid, report failure
+5. Update STATE.md: status=complete
+6. Report: "Analysis complete. Observed results: mu_val={value}, mu_err={value}"
 
 ## Environment
 

@@ -1,8 +1,9 @@
 # SLOP-X
 
 LLM-driven HEP bump hunt analysis framework. An orchestrator agent delegates
-work to specialist subagents through three sequential phases, producing a
-self-contained analysis script and measured signal strength.
+work to specialist subagents through five sequential phases with a blinding
+protocol, producing a self-contained analysis script and measured signal
+strength.
 
 ## How it works
 
@@ -13,11 +14,12 @@ self-contained analysis script and measured signal strength.
 └─────┬───────────────────────────────────────────────────────┘
       │
       ▼
- ┌──────────┐   ┌──────────────┐   ┌──────────┐
- │ Phase 1  │──▶│   Phase 2    │──▶│ Phase 3  │
- │ Strategy │   │  Execution   │   │  Review  │
- │ (4-bot)  │   │  (4-bot)     │   │ (4-bot)  │
- └──────────┘   └──────────────┘   └──────────┘
+ ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌─────────────┐   ┌──────────┐
+ │ Phase 1  │──▶│   Phase 2    │──▶│ Phase 3  │──▶│   Phase 4   │──▶│ Phase 5  │
+ │ Strategy │   │  Execution   │   │  Review  │   │ Unblinding  │   │ Summary  │
+ │ (4-bot)  │   │  (4-bot)     │   │ (4-bot)  │   │  (4-bot)    │   │ (4-bot)  │
+ └──────────┘   └──────────────┘   └──────────┘   └─────────────┘   └──────────┘
+       ◄──── BLINDED (SR data forbidden) ────►
 ```
 
 ### Phases
@@ -27,6 +29,11 @@ self-contained analysis script and measured signal strength.
 | **1. Strategy** | `lead-analyst` + `data-explorer` | 4-bot | `STRATEGY.md`, `DATA_SURVEY.md` |
 | **2. Execution** | `signal-lead` + `background-estimator` → `systematics-fitter` | 4-bot | `SELECTION.md`, `BACKGROUND.md`, `INFERENCE.md`, `analysis.py`, `results.json` |
 | **3. Review** | *(none — review only)* | 4-bot | PASS / ITERATE / ESCALATE |
+| **4. Unblinding** | `unblinding-analyst` | 4-bot | `UNBLINDING.md`, updated `results.json` |
+| **5. Summary** | `summary-writer` | 4-bot | `SUMMARY.md`, updated `STRATEGY.md` |
+
+Phases 1–3 are **blinded** — agents must not access Signal Region events from
+the measurement data. Blinding is lifted in Phase 4.
 
 Phase 2 runs in substages: data exploration, selection & background estimation
 (parallel), then statistical analysis and validation (sequential).
@@ -68,6 +75,8 @@ Warn at iteration 3, hard cap at 10.
 | `constructive-reviewer` | sonnet | Improvement suggestions |
 | `plot-validator` | sonnet | Programmatic figure validation |
 | `arbiter` | opus | Synthesizes reviews, issues verdict |
+| `unblinding-analyst` | opus | Unblinded fit, observed results |
+| `summary-writer` | opus | Final summary and STRATEGY.md update |
 
 ## Key concepts
 
@@ -106,7 +115,7 @@ slop-X/
 |------|---------|
 | `01-principles.md` | Scope, quality bar, design principles |
 | `02-inputs.md` | Required inputs (data, physics prompt, context) |
-| `03-phases.md` | Three-phase workflow with deliverables |
+| `03-phases.md` | Five-phase workflow with blinding protocol and deliverables |
 | `04-artifacts.md` | Artifact format and structure requirements |
 | `05-review.md` | Review tiers, criteria, iteration rules |
 | `06-tools.md` | Available software (numpy, scipy, ROOT, matplotlib, h5py, etc.) |

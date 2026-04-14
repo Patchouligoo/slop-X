@@ -1,9 +1,40 @@
 ## 3. Analysis Phases
 
-The analysis proceeds through three phases: **Strategy**, **Execution**, and
-**Review**. This matches the `/run-analysis` skill workflow. Within a phase,
-**work should be parallelized where possible** — sub-delegate independent
-tasks (systematic evaluations, plot generation) to concurrent sub-agents.
+The analysis proceeds through five phases: **Strategy**, **Execution**,
+**Review**, **Unblinding**, and **Summary**. This matches the `/run-analysis`
+skill workflow. Within a phase, **work should be parallelized where possible**
+— sub-delegate independent tasks (systematic evaluations, plot generation) to
+concurrent sub-agents.
+
+### Blinding Protocol
+
+During Phases 1–3, the Signal Region (SR) of the measurement data is
+**blinded**. This is a hard rule — no agent may read, plot, fit, count, or
+otherwise examine SR events from the measurement data during these phases.
+
+**What is permitted during Phases 1–3:**
+- Control region data — unrestricted access
+- Monte Carlo simulation samples — unrestricted access
+- Measurement data in sideband / control regions only (events outside the SR)
+- Asimov (expected) data in the SR for fit validation and expected results
+
+**What is forbidden during Phases 1–3:**
+- Reading SR events from the measurement data
+- Plotting SR distributions from the measurement data
+- Fitting to SR events from the measurement data
+- Counting observed events in the SR from the measurement data
+- Any operation that reveals the observed SR event count or distribution
+
+**Enforcement.** Blinding is enforced through review. Reviewers in Phases 1–3
+must verify blinding compliance as part of every review cycle. Any operation
+that reveals observed SR event counts or distributions from the measurement
+data is a **Category A** finding (must resolve before advancement). This
+applies to all agents, including the data-explorer. There are no exceptions
+— no "quick peek", no "just checking the total count."
+
+**When blinding is lifted.** Blinding is lifted in Phase 4 (Unblinding),
+which is the first and only phase where SR events from the measurement data
+are examined.
 
 ### 3.0 Artifact and Review Gates
 
@@ -227,24 +258,26 @@ after both selection and background estimation are complete.
   overestimated uncertainties
 
 *Results:*
-- Compute results (limits, significance, or measurement precision)
+- Compute expected results (limits, significance, or measurement precision)
+  using Asimov data in the SR (blinding protocol)
 - Produce post-fit diagnostics: nuisance parameter pulls, impact ranking,
-  correlation matrix, goodness-of-fit
-- Compare observed results to expected results. Report consistency
-  quantitatively. Flag any result that disagrees with expected at >2σ.
-- If results show anomalies (large NP pulls, poor GoF, unexpected signal),
-  investigate and document whether these indicate a modeling problem or a
-  genuine feature of the data
+  correlation matrix, goodness-of-fit — all using Asimov SR data
+- Verify that expected results are physically sensible
 - **Produce `analysis.py`** — a self-contained Python script that reads
   data files from the current directory, performs the full analysis
   (selection, background estimation, fit), and writes `results.json` with
-  `{"mu_val": <float>, "mu_err": <float>}`
-- Run `analysis.py` and verify it produces valid `results.json`
-- **Produce `results.json`** with the final physics results
+  `{"mu_val": <float>, "mu_err": <float>}`. The script must support a
+  `--blinded` flag: when set, the script substitutes Asimov (expected)
+  data in the SR instead of using actual SR events from the measurement
+  data. When the flag is absent, the script uses all data including SR.
+- Run `analysis.py --blinded` and verify it produces valid `results.json`
+  containing expected results
+- **Produce `results.json`** with the **expected** physics results (from
+  the blinded run). Observed results are produced in Phase 4.
 
 **Output artifacts:** `INFERENCE.md` — systematic uncertainty table with
-impacts, statistical model description, results, fit diagnostics.
-`analysis.py`, `results.json`.
+impacts, statistical model description, expected results, fit diagnostics.
+`analysis.py`, `results.json` (expected).
 
 ---
 
@@ -265,9 +298,87 @@ The orchestrator spawns the review protocol defined in Section 5:
   Category A findings, then re-review. Warn at iteration 3, hard cap at 10.
 - **ESCALATE** — Fundamental issue found. Report failure with explanation.
 
-**On PASS:** Verify `results.json` exists and contains valid results. Update
-state to complete.
+**On PASS:** Verify expected `results.json` exists and contains valid results.
+Proceed to Phase 4 (Unblinding).
 
-**Output:** Review artifacts in `review/` directory. Final `results.json`.
+**Output:** Review artifacts in `review/` directory. Expected `results.json`.
+
+---
+
+### Phase 4: Unblinding
+
+**Goal:** Run the analysis on actual Signal Region data and produce observed
+results.
+
+**Inputs:** All Phase 2 artifacts (passed review), `analysis.py`,
+`results.json` (expected results from the blinded analysis).
+
+**Precondition:** Phase 3 review must have issued PASS. The blinding protocol
+is lifted for this phase — the `unblinding-analyst` is the first and only
+agent permitted to examine SR events from the measurement data.
+
+**The agent must:**
+- Run the existing `analysis.py` (produced in Phase 2) **without** the
+  `--blinded` flag, so it uses actual SR events from the measurement data
+- Record the observed `mu_val` and `mu_err`
+- Compare observed results to expected results (from Phase 2's blinded run)
+  quantitatively. Report the difference in units of sigma. Flag any result
+  inconsistent at > 2σ
+- Run post-fit diagnostics with real SR data:
+  - Post-fit distributions with data overlaid in all regions including SR
+  - Nuisance parameter pulls (flag > 2σ)
+  - Goodness-of-fit (flag p-value < 0.05)
+- Assess anomalies: if NP pulls are large, GoF is poor, or the observed
+  signal is unexpected, investigate whether these indicate a modeling problem
+  or a genuine feature of the data. Document the assessment
+- Update `results.json` with observed `mu_val` and `mu_err`
+
+**The agent must NOT:**
+- Rebuild the analysis or change the selection, background estimation, or
+  fit model. Phase 4 runs the existing analysis — it does not redesign it
+- Modify `analysis.py` in any way. The script already supports unblinded
+  mode (run without `--blinded`)
+
+**Output artifact:** `UNBLINDING.md` — observed results, observed vs expected
+comparison, anomaly assessment, post-fit diagnostics with SR data. Updated
+`results.json`.
+
+**Review:** See Section 5. Unblinding review evaluates whether the observed
+results are consistent with expectations and whether anomalies are properly
+investigated.
+
+---
+
+### Phase 5: Summary
+
+**Goal:** Produce a final summary documenting the complete analysis chain and
+append results to `STRATEGY.md`.
+
+**Inputs:** All artifacts from Phases 1–4, all review artifacts.
+
+**Precondition:** Phase 4 review must have issued PASS.
+
+**The agent must:**
+- Read all phase artifacts (STRATEGY.md, DATA_SURVEY.md, SELECTION.md,
+  BACKGROUND.md, INFERENCE.md, UNBLINDING.md) and review artifacts
+- Produce `SUMMARY.md` — a comprehensive summary of the analysis covering:
+  - Signal process and selection strategy
+  - Background estimation and systematic uncertainty budget
+  - Expected results (from blinded analysis)
+  - Observed results (from unblinding)
+  - Anomaly assessment and interpretation
+  - Lessons learned and potential improvements
+- Append Phase 4 and Phase 5 results to `STRATEGY.md` in-place, adding new
+  sections at the end. Do not overwrite existing Phase 1 content — the
+  original strategy remains intact, with unblinding and summary results
+  appended below
+- Ensure internal consistency: all numbers cited in the summary must match
+  the source artifacts
+
+**Output artifacts:** `SUMMARY.md` — full analysis chain summary. Updated
+`STRATEGY.md` with Phase 4 and Phase 5 results appended.
+
+**Review:** See Section 5. Summary review evaluates completeness, accuracy,
+and internal consistency of the documentation.
 
 ---

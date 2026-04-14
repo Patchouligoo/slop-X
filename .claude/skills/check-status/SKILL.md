@@ -40,6 +40,8 @@ Last updated:   {timestamp from STATE.md}
 Phase 1: STRATEGY.md, DATA_SURVEY.md
 Phase 2: SELECTION.md, BACKGROUND.md, INFERENCE.md, analysis.py, results.json
 Phase 3: review/ (arbiter verdict)
+Phase 4: UNBLINDING.md, results.json (observed)
+Phase 5: SUMMARY.md, STRATEGY.md (updated with Phase 4/5 results)
 ...only for phases that have status=passed
 
 --- Blockers ---
@@ -54,6 +56,8 @@ Phase 3: review/ (arbiter verdict)
 Phase 1: {N} iterations (4-bot)
 Phase 2: {N} iterations (4-bot)
 Phase 3: {N} iterations (4-bot)
+Phase 4: {N} iterations (4-bot)
+Phase 5: {N} iterations (4-bot)
 ...etc
 
 --- Regressions ---
@@ -74,6 +78,7 @@ Human intervention is required to proceed.
 
 ```
 >>> ANALYSIS COMPLETE <<<
-Final results: results.json
+Final results: results.json (observed)
 Analysis script: analysis.py
+Summary: SUMMARY.md
 ```

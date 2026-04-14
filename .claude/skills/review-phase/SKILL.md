@@ -10,7 +10,7 @@ Run the review cycle for a completed phase artifact. All phases use 4-bot review
 
 **Arguments:** `$ARGUMENTS`
 
-The argument is optionally a phase identifier: `1`, `2`, or `3`. If omitted, read STATE.md to determine the current phase.
+The argument is optionally a phase identifier: `1`, `2`, `3`, `4`, or `5`. If omitted, read STATE.md to determine the current phase.
 
 ## Step 1: Determine Phase and Review Tier
 
@@ -23,6 +23,8 @@ The argument is optionally a phase identifier: `1`, `2`, or `3`. If omitted, rea
 | 1 (Strategy) | 4-bot (physics + critical + constructive, then arbiter) | Yes (if figures produced) |
 | 2 (Execution) | 4-bot | Yes |
 | 3 (Final Review) | 4-bot | Yes |
+| 4 (Unblinding) | 4-bot | Yes |
+| 5 (Summary) | 4-bot | Yes (if figures produced) |
 
 ## Step 2: Locate the Artifact Under Review
 
@@ -33,6 +35,8 @@ Find the latest artifact for this phase:
 | 1 | `STRATEGY.md`, `DATA_SURVEY.md` | working directory |
 | 2 | `INFERENCE.md`, `SELECTION.md`, `BACKGROUND.md`, `analysis.py`, `results.json` | working directory |
 | 3 | All Phase 1 and 2 artifacts + `figures/` | working directory |
+| 4 | `UNBLINDING.md`, updated `results.json` | working directory |
+| 5 | `SUMMARY.md`, updated `STRATEGY.md` | working directory |
 
 Read the experiment log for this phase if it exists.
 
@@ -48,9 +52,11 @@ Initialize iteration counter: `iteration = 0`.
 
 Before spawning reviewers, note the focus area for the current phase:
 
-- **Phase 1 (Strategy)**: Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? Are 2-3 published reference analyses identified?
-- **Phase 2 (Execution)**: Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Does the systematic completeness table account for all planned sources? Do signal injection tests pass? Are post-fit diagnostics clean? Are observed results consistent with expected?
-- **Phase 3 (Final Review)**: Review the complete analysis as a journal referee would. Check for: systematic sources planned in Phase 1 but dropped without justification, validation evidence that exists but was not included, logical gaps where claims lack supporting evidence, quantitative results that are inconsistent between tables. Does the result contain enough information for an independent analyst to reproduce the measurement?
+- **Phase 1 (Strategy)**: Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? Are 2-3 published reference analyses identified? **Blinding compliance:** verify no SR events from measurement data were examined. Any violation is Category A.
+- **Phase 2 (Execution)**: Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Does the systematic completeness table account for all planned sources? Do signal injection tests pass? Are post-fit diagnostics clean? Are expected results physically sensible? **Blinding compliance:** verify all SR results use Asimov data only — no SR events from measurement data were examined. Any violation is Category A.
+- **Phase 3 (Final Review)**: Review the complete analysis as a journal referee would. Check for: systematic sources planned in Phase 1 but dropped without justification, validation evidence that exists but was not included, logical gaps where claims lack supporting evidence, quantitative results that are inconsistent between tables. Does the result contain enough information for an independent analyst to reproduce the measurement? **Blinding compliance:** verify no SR events from measurement data were examined in any phase. Any violation is Category A.
+- **Phase 4 (Unblinding)**: Are observed results consistent with expected (within 2σ or investigated)? Are NP pulls reasonable (< 2σ)? Is GoF acceptable (p-value > 0.05)? Are anomalies properly investigated and documented? Is the updated `results.json` valid and contains observed values? Was `analysis.py` run without unauthorized modifications?
+- **Phase 5 (Summary)**: Is the summary complete and accurate? Does STRATEGY.md contain Phase 4 and Phase 5 results (appended sections)? Are all numbers internally consistent with source artifacts? Is the full analysis chain documented?
 
 ### 4-bot Review (All Phases)
 

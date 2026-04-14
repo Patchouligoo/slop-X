@@ -42,6 +42,11 @@ document it as a "known limitation" and move on.
   analysis — empirically grounded, not speculative. The agent consults
   applicable conventions during strategy (Phase 1) and systematics (Phase 2),
   and updates them with new knowledge gained during the analysis.
+- **Blinding before unblinding.** Signal Region data from the measurement
+  data is not examined until the analysis has been fully designed (Phase 1),
+  implemented (Phase 2), and reviewed (Phase 3). This prevents confirmation
+  bias from influencing analysis choices. Blinding is lifted in Phase 4
+  (Unblinding). See Section 3 (Blinding Protocol) for enforcement details.
 - **Downscope, don't block.** When a resource is unavailable (missing MC,
   insufficient statistics, inaccessible data, no GPU for large training),
   the agent downscopes to what is achievable now and documents what would

@@ -39,6 +39,14 @@ At the start of every session:
 5. Query the experiment corpus (via MCP tools if available) for prior work, detector capabilities, published cross-sections, and relevant measurements at this experiment.
 6. **Read the applicable `conventions/` file** for the analysis type (e.g., `conventions/higgs.md`, `conventions/susy.md`, `conventions/exotica.md`, `conventions/sm.md`). Identify which conventions document applies to this analysis and load it before writing the systematic plan.
 
+## Blinding Protocol
+
+During Phase 1 (Strategy), the Signal Region of the measurement data is
+blinded. You must not examine, plot, or count SR events from the measurement
+data. Use MC simulation predictions or sideband extrapolations for any SR
+yield estimates. Control region data and MC samples may be used freely.
+See `methodology/03-phases.md` for the full blinding protocol.
+
 ## Phase 1: Strategy Development
 
 ### MANDATORY: Conventions Cross-Reference

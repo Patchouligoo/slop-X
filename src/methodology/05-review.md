@@ -28,6 +28,8 @@ All reviews — regardless of intensity — use the same classification:
 | Phase 1: Strategy | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | Sets direction for everything. Physics errors propagate. Cheap phase, so review cost is well spent. |
 | Phase 2: Execution | **4-bot + plot-validator** | The fit model, systematics, and final results need full tribunal review. |
 | Phase 3: Final Review | **4-bot + plot-validator** (physics + critical + constructive + arbiter) | The final product reviewed as a complete package. Worth the full treatment. |
+| Phase 4: Unblinding | **4-bot + plot-validator** | First look at real SR data — observed results need full tribunal review. |
+| Phase 5: Summary | **4-bot + plot-validator** | Final documentation quality check. Ensures complete and accurate record. |
 
 **Plot-validator** is spawned alongside all other reviewers (in parallel) for
 every phase that produces figures. The plot-validator runs programmatic checks
@@ -102,9 +104,11 @@ the completeness of those documents.
 
 | Phase | Review focus |
 |-------|-------------|
-| 1: Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? |
-| 2: Execution | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Cutflow counts monotonically non-increasing (Category A if violated)? **If MVA used:** is data/MC agreement acceptable? Was an alternative architecture tried? Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Do signal injection tests pass? Are post-fit diagnostics clean? Are observed results consistent with expected? |
-| 3: Final Review | See §5.4.4 below. |
+| 1: Strategy | Are backgrounds complete? Is the approach motivated by the literature? Does the systematic plan cover the standard sources for this analysis type (consult `conventions/`)? **Blinding compliance:** verify no SR events from measurement data were examined. |
+| 2: Execution | Does the background model close? Is every cut motivated by a plot? Is signal contamination controlled? Cutflow counts monotonically non-increasing (Category A if violated)? **If MVA used:** is data/MC agreement acceptable? Was an alternative architecture tried? Is the fit healthy? Are systematics complete — both internally consistent AND relative to conventions? Do signal injection tests pass? Are post-fit diagnostics clean? Are expected results physically sensible? **Blinding compliance:** verify no SR events from measurement data were examined — all SR results must use Asimov data. |
+| 3: Final Review | See §5.4.4 below. **Blinding compliance:** verify no SR events from measurement data were examined in any phase. Any blinding violation is Category A. |
+| 4: Unblinding | See §5.4.5 below. |
+| 5: Summary | See §5.4.6 below. |
 
 #### 5.4.1 Completeness Review (Strategy and Inference)
 
@@ -321,7 +325,46 @@ The cost of this review is additional iteration loops if it finds gaps that
 should have been caught earlier. That cost is acceptable — it is better to
 iterate at Phase 3 than to publish an incomplete result.
 
-### 5.4.5 Single-Session Review via Subagents
+### 5.4.5 Unblinding Review (Phase 4)
+
+The Phase 4 (Unblinding) review evaluates the first look at real SR data.
+This is the moment where the blinding protocol is lifted and observed results
+are produced.
+
+**Framing:** The reviewer examines the observed results and post-fit
+diagnostics. The questions are: "Are the observed results consistent with
+the expected results within uncertainties? Are there any signs of problems
+in the fit when real SR data is used?"
+
+**Required checks:**
+- Observed vs expected mu_val: is the difference < 2σ? If not, is the
+  discrepancy investigated and understood?
+- Nuisance parameter pulls with real data: are they reasonable (< 2σ)?
+- Goodness-of-fit with real data: is the p-value acceptable (> 0.05)?
+- Post-fit distributions: does the model describe the SR data adequately?
+- If anomalies are found: are they properly investigated? Is the assessment
+  (modeling problem vs genuine physics) supported by evidence?
+- Does `results.json` contain the observed (not expected) mu_val and mu_err?
+
+### 5.4.6 Summary Review (Phase 5)
+
+The Phase 5 (Summary) review evaluates the final documentation.
+
+**Framing:** The reviewer examines the summary as a reader who has not
+followed the analysis. The questions are: "Does this summary give a complete,
+accurate, and internally consistent account of the analysis?"
+
+**Required checks:**
+- Does STRATEGY.md contain Phase 4 and Phase 5 results (appended sections)?
+- Are all numbers in the summary consistent with the source artifacts?
+- Is the full analysis chain documented (strategy → execution → review →
+  unblinding → summary)?
+- Are anomalies and their resolution documented?
+- Are lessons learned and potential improvements included?
+- Would a reader unfamiliar with the analysis understand what was done and
+  what was found?
+
+### 5.4.7 Single-Session Review via Subagents
 
 When the analysis runs in a single session, reviews are implemented by
 spawning dedicated reviewer subagents. The reviewer subagent reads the phase
@@ -331,9 +374,11 @@ artifact from disk and applies the review criteria.
 
 | Phase | Minimum checks |
 |-------|---------------|
-| 1: Strategy | Conventions consulted? Systematic plan covers standard sources? Data survey complete? |
-| 2: Execution | Every cut motivated by a plot? Data/MC validation done? Cutflow complete? Systematic completeness table? Signal injection tests pass? Post-fit diagnostics clean? Results consistent with expected? `analysis.py` runs and produces valid `results.json`? |
-| 3: Final Review | Complete package review as journal referee. `analysis.py` reproduces `results.json`? Figures pass cosmetic checklist (§5.4.2)? No dropped systematics? |
+| 1: Strategy | Conventions consulted? Systematic plan covers standard sources? Data survey complete? Blinding protocol followed (no SR measurement data examined)? |
+| 2: Execution | Every cut motivated by a plot? Data/MC validation done? Cutflow complete? Systematic completeness table? Signal injection tests pass? Post-fit diagnostics clean? Expected results physically sensible? `analysis.py` runs and produces valid `results.json`? Blinding protocol followed (SR uses Asimov only)? |
+| 3: Final Review | Complete package review as journal referee. `analysis.py` reproduces `results.json`? Figures pass cosmetic checklist (§5.4.2)? No dropped systematics? Blinding protocol followed across all phases? |
+| 4: Unblinding | Observed vs expected comparison quantitative (< 2σ or investigated)? NP pulls < 2σ? GoF p-value acceptable? Anomalies investigated? Updated `results.json` contains observed values? |
+| 5: Summary | Complete analysis chain documented? STRATEGY.md updated with Phase 4/5 results? Summary internally consistent with all source artifacts? |
 
 **No self-review fallback.** Strategy and final review require independent
 reviewer subagents. Self-review is not an acceptable substitute — the

@@ -106,6 +106,11 @@ binding — reviews check against it. Silent omissions are Category A findings
 
 {{data_description}}
 
+**Blinding:** During Phases 1-3, agents must not access Signal Region events
+from the measurement data. Only control region data, MC samples, and sideband
+regions of the measurement data are permitted. Blinding is lifted in Phase 4
+(Unblinding). See `methodology/03-phases.md` for the full blinding protocol.
+
 {{physics_hints}}
 
 ---

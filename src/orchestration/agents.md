@@ -19,16 +19,18 @@ definitions. This file provides the mapping and launch instructions.
 | `signal-lead` | 2: Execution | Event selection implementation |
 | `background-estimator` | 2: Execution | Background estimation, CR/VR design, closure tests |
 | `systematics-fitter` | 2: Execution | Systematic evaluation, fit model, produces `analysis.py` + `results.json` |
+| `unblinding-analyst` | 4: Unblinding | Runs analysis.py on SR data, observed results, anomaly assessment |
+| `summary-writer` | 5: Summary | Final analysis summary, STRATEGY.md update with Phase 4/5 results |
 
 #### Review Agents
 
 | Agent | Phase | Description |
 |-------|-------|-------------|
-| `physics-reviewer` | 1,2,3: Review | Senior physicist review (no methodology — pure physics) |
-| `critical-reviewer` | 1,2,3: Review | Find flaws (bad cop) |
-| `constructive-reviewer` | 1,2,3: Review | Strengthen analysis (good cop) |
-| `plot-validator` | 1,2,3: Review | Programmatic + physics sanity checks on figures |
-| `arbiter` | 1,2,3: Review | Adjudicate, issue PASS/ITERATE/ESCALATE |
+| `physics-reviewer` | 1,2,3,4,5: Review | Senior physicist review (no methodology — pure physics) |
+| `critical-reviewer` | 1,2,3,4,5: Review | Find flaws (bad cop) |
+| `constructive-reviewer` | 1,2,3,4,5: Review | Strengthen analysis (good cop) |
+| `plot-validator` | 1,2,3,4,5: Review | Programmatic + physics sanity checks on figures |
+| `arbiter` | 1,2,3,4,5: Review | Adjudicate, issue PASS/ITERATE/ESCALATE |
 
 ---
 
@@ -39,6 +41,8 @@ definitions. This file provides the mapping and launch instructions.
 | **1: Strategy** | `lead-analyst` + `data-explorer` (parallel) | 4-bot | physics + critical + constructive + plot-validator → arbiter |
 | **2: Execution** | `signal-lead` + `background-estimator` (parallel) → `systematics-fitter` | 4-bot after inference | physics + critical + constructive + plot-validator → arbiter |
 | **3: Review** | *(no executors — review only)* | 4-bot | physics + critical + constructive + plot-validator → arbiter |
+| **4: Unblinding** | `unblinding-analyst` | 4-bot after unblinding | physics + critical + constructive + plot-validator → arbiter |
+| **5: Summary** | `summary-writer` | 4-bot after summary | physics + critical + constructive + plot-validator → arbiter |
 
 ---
 
@@ -221,4 +225,54 @@ plot-validation). For each issue:
 Plot-validation red flags are automatic Category A — do not downgrade them.
 
 End with: PASS / ITERATE (list Category A items) / ESCALATE (document why).
+```
+
+---
+
+### Unblinding Analyst Launch Template
+
+**Context:** Bird's-eye framing, all Phase 2 artifacts (INFERENCE.md,
+SELECTION.md, BACKGROUND.md), STRATEGY.md, analysis.py, results.json
+(expected), experiment log
+
+**Writes:** `UNBLINDING.md`, updated `results.json`
+
+**Instruction core:**
+```
+Execute Phase 4 (Unblinding) of this HEP analysis. Your detailed role
+instructions are in .claude/agents/unblinding-analyst.md — read that file
+for your complete role definition, procedures, and output format.
+
+The blinding protocol is now LIFTED. You are the first agent permitted to
+examine Signal Region events from the measurement data.
+
+Your job is to run the existing analysis.py on the full measurement data
+including SR, record observed results, compare them to expected results,
+and assess any anomalies. You do NOT rebuild the analysis.
+
+Read all upstream artifacts. Run analysis.py. Produce UNBLINDING.md and
+update results.json with observed values.
+```
+
+---
+
+### Summary Writer Launch Template
+
+**Context:** Bird's-eye framing, all artifacts from Phases 1–4 (STRATEGY.md,
+DATA_SURVEY.md, SELECTION.md, BACKGROUND.md, INFERENCE.md, UNBLINDING.md),
+results.json (observed), experiment log, review arbiter verdicts
+
+**Writes:** `SUMMARY.md`, updated `STRATEGY.md`
+
+**Instruction core:**
+```
+Execute Phase 5 (Summary) of this HEP analysis. Your detailed role
+instructions are in .claude/agents/summary-writer.md — read that file
+for your complete role definition, procedures, and output format.
+
+Synthesize all phase artifacts into a comprehensive SUMMARY.md. Append
+Phase 4 (Unblinding) and Phase 5 (Summary) results to STRATEGY.md
+in-place — add new sections at the end, do not modify existing content.
+
+Ensure all numbers cited are internally consistent with source artifacts.
 ```
