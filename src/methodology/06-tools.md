@@ -76,6 +76,48 @@ Never modify the underlying arrays — apply masks to produce filtered views.
 This makes cutflows trivial (count `True` values at each stage) and cuts
 composable (AND masks for combined selections).
 
+**Prefer ROOT for fitting.** For signal+background fits, likelihood fits,
+and any fit involving PDFs, use ROOT's RooFit rather than scipy. RooFit
+handles extended likelihood fits, parameter constraints, and error
+propagation correctly out of the box. Use scipy only for trivial curve
+fits where RooFit would be overkill.
+
+Minimal RooFit pattern:
+```python
+import ROOT
+import numpy as np
+
+# 1. Observable and parameters
+obs = ROOT.RooRealVar("obs", "obs", x_lo, x_hi)
+mean = ROOT.RooRealVar("mean", "mean", init_val, lo, hi)
+sigma = ROOT.RooRealVar("sigma", "sigma", init_val, lo, hi)
+
+# 2. Build PDF
+pdf = ROOT.RooGaussian("pdf", "pdf", obs, mean, sigma)
+
+# 3. Binned data from numpy histogram
+h = ROOT.TH1D("h", "h", n_bins, bins.astype(np.float64))
+for i in range(n_bins):
+    h.SetBinContent(i + 1, values[i])
+    h.SetBinError(i + 1, errors[i])
+data = ROOT.RooDataHist("data", "data", ROOT.RooArgList(obs), h)
+
+# 4. Fit and extract results
+pdf.fitTo(data, PrintLevel=-1)
+fitted_val = mean.getVal()
+fitted_err = mean.getError()
+```
+
+For signal+background models, use `RooAddPdf` with extended terms:
+```python
+mu = ROOT.RooRealVar("mu", "mu", 0, -1e6, 1e6)
+B = ROOT.RooRealVar("B", "B", n_total, 0, 1e9)
+model = ROOT.RooAddPdf("model", "model",
+    ROOT.RooArgList(sig_pdf, bkg_pdf), ROOT.RooArgList(mu, B))
+model.fitTo(data, Extended=True, PrintLevel=-1)
+mu_val, mu_err = mu.getVal(), mu.getError()
+```
+
 **Fit reproducibility.** A human must be able to re-run every fit in the
 analysis. Each fit should have its own script (e.g., `python3 fit.py`,
 `python3 compute_limits.py`). The input data, fit script, and results
