@@ -12,58 +12,14 @@ knowledge about what works well in practice.
 | Data I/O | pandas, h5py | `pd.read_hdf()` for HDF5 files. `h5py` for low-level access when needed. |
 | Array operations | numpy, pandas | Columnar analysis — no event loops. numpy for numerical arrays, pandas for labeled data. |
 | Histogramming | numpy | `np.histogram`, `np.histogram2d`, `np.histogramdd`. Use `np.searchsorted` for bin assignment. |
-| Fitting / optimization | **ROOT (RooFit)**; scipy.optimize only for diagnostic curve fits | RooFit for every fit whose output feeds the physics result: sideband background fits, signal+background models, likelihood fits, μ extraction, limits. `scipy.curve_fit` is allowed ONLY for exploratory or diagnostic fits that do not produce numbers cited in artifacts. See "Fitting policy" block below. |
-| Statistical tests | **ROOT (RooStats)**; scipy.stats for diagnostic only | `RooStats` for CLs limits, profile likelihood, and hypothesis testing. `scipy.stats` for simple p-values / KS tests in diagnostics. |
+| Fitting / optimization | scipy.optimize, ROOT | `curve_fit` for simple fits, `minimize` for general optimization. ROOT's `TF1.Fit()` and `RooFit` for complex likelihood fits and signal+background models. |
+| Statistical tests | scipy.stats, ROOT | Hypothesis tests, p-values, confidence intervals. ROOT's `RooStats` for CLs limits, profile likelihood, and hypothesis testing. |
 | Plotting | matplotlib | Plain matplotlib with clear labels, legends, and axis annotations. No experiment-specific styling packages. See Appendix A for the plotting template. |
 | Progress bars | tqdm | For long-running loops. `from tqdm import tqdm`. |
 | Logging | logging | Python `logging` module. No bare `print()`. See Section 7 for setup. |
 
-**Fitting policy — read this before writing any fit.**
-
-scipy is only acceptable for diagnostic curve fits that do not produce numbers
-reported in artifacts. The sideband background fit, any likelihood fit, and
-any fit producing μ / limits / confidence intervals must use RooFit — no
-exceptions. "The fit is mathematically simple" is NOT a justification for
-scipy; the question is whether the fit's output appears in an artifact.
-
-Minimal RooFit pattern:
-```python
-import ROOT
-import numpy as np
-
-# 1. Observable and parameters
-obs = ROOT.RooRealVar("obs", "obs", x_lo, x_hi)
-mean = ROOT.RooRealVar("mean", "mean", init_val, lo, hi)
-sigma = ROOT.RooRealVar("sigma", "sigma", init_val, lo, hi)
-
-# 2. Build PDF
-pdf = ROOT.RooGaussian("pdf", "pdf", obs, mean, sigma)
-
-# 3. Binned data from numpy histogram
-h = ROOT.TH1D("h", "h", n_bins, bins.astype(np.float64))
-for i in range(n_bins):
-    h.SetBinContent(i + 1, values[i])
-    h.SetBinError(i + 1, errors[i])
-data = ROOT.RooDataHist("data", "data", ROOT.RooArgList(obs), h)
-
-# 4. Fit and extract results
-pdf.fitTo(data, PrintLevel=-1)
-fitted_val = mean.getVal()
-fitted_err = mean.getError()
-```
-
-For signal+background models, use `RooAddPdf` with extended terms:
-```python
-mu = ROOT.RooRealVar("mu", "mu", 0, -1e6, 1e6)
-B = ROOT.RooRealVar("B", "B", n_total, 0, 1e9)
-model = ROOT.RooAddPdf("model", "model",
-    ROOT.RooArgList(sig_pdf, bkg_pdf), ROOT.RooArgList(mu, B))
-model.fitTo(data, Extended=True, PrintLevel=-1)
-mu_val, mu_err = mu.getVal(), mu.getError()
-```
-
 **Tools NOT available** (do not use):
-- `uproot`, `awkward-array` — data is HDF5
+- `uproot`, `awkward-array` — data is HDF5, not ROOT
 - `pyhf`, `cabinetry`, `zfit` — use scipy or ROOT for fitting
 - `mplhep` — use plain matplotlib
 - `coffea`, `fastjet` — not applicable
@@ -119,6 +75,45 @@ and less error-prone than loop-based code.
 Never modify the underlying arrays — apply masks to produce filtered views.
 This makes cutflows trivial (count `True` values at each stage) and cuts
 composable (AND masks for combined selections).
+
+**Prefer ROOT for fitting.** For signal+background fits, likelihood fits,
+and any fit involving PDFs, use ROOT's RooFit rather than scipy if possible.
+
+Minimal RooFit pattern:
+```python
+import ROOT
+import numpy as np
+
+# 1. Observable and parameters
+obs = ROOT.RooRealVar("obs", "obs", x_lo, x_hi)
+mean = ROOT.RooRealVar("mean", "mean", init_val, lo, hi)
+sigma = ROOT.RooRealVar("sigma", "sigma", init_val, lo, hi)
+
+# 2. Build PDF
+pdf = ROOT.RooGaussian("pdf", "pdf", obs, mean, sigma)
+
+# 3. Binned data from numpy histogram
+h = ROOT.TH1D("h", "h", n_bins, bins.astype(np.float64))
+for i in range(n_bins):
+    h.SetBinContent(i + 1, values[i])
+    h.SetBinError(i + 1, errors[i])
+data = ROOT.RooDataHist("data", "data", ROOT.RooArgList(obs), h)
+
+# 4. Fit and extract results
+pdf.fitTo(data, PrintLevel=-1)
+fitted_val = mean.getVal()
+fitted_err = mean.getError()
+```
+
+For signal+background models, use `RooAddPdf` with extended terms:
+```python
+mu = ROOT.RooRealVar("mu", "mu", 0, -1e6, 1e6)
+B = ROOT.RooRealVar("B", "B", n_total, 0, 1e9)
+model = ROOT.RooAddPdf("model", "model",
+    ROOT.RooArgList(sig_pdf, bkg_pdf), ROOT.RooArgList(mu, B))
+model.fitTo(data, Extended=True, PrintLevel=-1)
+mu_val, mu_err = mu.getVal(), mu.getError()
+```
 
 **Fit reproducibility.** A human must be able to re-run every fit in the
 analysis. Each fit should have its own script (e.g., `python3 fit.py`,
